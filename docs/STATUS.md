@@ -57,11 +57,32 @@ uniquement dans les outils de compilation, non livrés).
 - ✅ Doublons, dépendances manquantes, mauvais chargeur, incompatibilités détectés
 - ✅ Réglages graphiques recommandés selon le PC, aperçu avant/après, restauration
 
-## Mod Fabric 1.21.1
+## Mod Fabric (multi-versions)
 - ✅ « Modules Zenthra » dans le menu Échap (« Zenthra Skills » si le jeu est en anglais)
 - ✅ 15 modules, dont Indicateurs d'état ; diagnostic en jeu ; aperçu du viseur ; réinitialisation
   complète (waypoints conservés) ; waypoints par monde ou serveur
-- ⏳ Portage sur d'autres versions de Minecraft et sur Forge/NeoForge
+- ✅ Un jar par famille de versions ; le launcher installe celui qui correspond au profil
+  et ne propose le mod que pour ces versions (`launcher/resources/zenthra-mod/index.json`)
+
+Validation : parcours automatique en jeu (`SMOKE_SELFTEST=1 SMOKE_MC=<version> npm run smoke`,
+41 étapes : bouton du menu pause, écrans, HUD, zoom, free look, toggle sprint, effets,
+hit color, scoreboard, rechargement à chaud depuis le launcher).
+
+| Minecraft | Java | Parcours en jeu |
+| --- | --- | --- |
+| 1.20 – 1.20.1 | 17 | ✅ 41/41 (1.20.1) |
+| 1.20.4 | 17 | ✅ 41/41 |
+| 1.20.6 | 21 | ✅ 41/41 |
+| 1.21 – 1.21.1 | 21 | ✅ 41/41 (1.21.1) |
+| 1.21.4 | 21 | ✅ 41/41 |
+| 1.21.5 | 21 | ✅ 41/41 |
+| 1.21.6 – 1.21.8 | 21 | ✅ 41/41 (1.21.6 et 1.21.8 ; 1.21.7 non testée seule) |
+| 1.21.9 | 21 | ✅ 41/41 |
+| 1.21.10 | 21 | ✅ 41/41 |
+| 1.21.11 | 21 | ✅ 41/41 |
+| 26.3 | 25 | ✅ 41/41 |
+
+- ⛔ Pas encore : 1.20.2–1.20.3, 1.20.5, 1.21.2–1.21.3, 26.1–26.2, 1.8.9 (ancien Forge, mod séparé), Forge/NeoForge
 
 ## Compte, mises à jour, communauté
 - ✅ Connexion Microsoft PKCE complète, jetons chiffrés DPAPI (testée en simulation)

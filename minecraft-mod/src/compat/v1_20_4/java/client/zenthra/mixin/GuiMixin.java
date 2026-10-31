@@ -14,12 +14,12 @@ public class GuiMixin {
 	private boolean zenthra$pushed;
 
 	@Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
-	private void zenthra$crosshair(GuiGraphics g, float partialTick, CallbackInfo ci) {
+	private void zenthra$crosshair(GuiGraphics g, CallbackInfo ci) {
 		if (Hooks.replaceCrosshair()) ci.cancel();
 	}
 
 	@Inject(method = "renderEffects", at = @At("HEAD"), cancellable = true)
-	private void zenthra$effects(GuiGraphics g, float partialTick, CallbackInfo ci) {
+	private void zenthra$effects(GuiGraphics g, CallbackInfo ci) {
 		if (Hooks.hideVanillaEffects()) ci.cancel();
 	}
 

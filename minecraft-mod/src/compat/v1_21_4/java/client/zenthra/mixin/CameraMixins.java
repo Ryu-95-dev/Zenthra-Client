@@ -19,9 +19,9 @@ public final class CameraMixins {
 	@Mixin(GameRenderer.class)
 	public static class Fov {
 		@Inject(method = "getFov", at = @At("RETURN"), cancellable = true)
-		private void zenthra$zoom(net.minecraft.client.Camera camera, float partialTick, boolean useFovSetting, CallbackInfoReturnable<Double> cir) {
+		private void zenthra$zoom(net.minecraft.client.Camera camera, float partialTick, boolean useFovSetting, CallbackInfoReturnable<Float> cir) {
 			double m = Hooks.fovMultiplier();
-			if (useFovSetting && m != 1.0) cir.setReturnValue(cir.getReturnValue() * m);
+			if (useFovSetting && m != 1.0) cir.setReturnValue((float) (cir.getReturnValue() * m));
 		}
 	}
 
