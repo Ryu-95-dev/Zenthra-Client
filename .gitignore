@@ -1,0 +1,11 @@
+node_modules/
+launcher/dist/
+launcher/dist-electron/
+launcher/release/
+launcher/smoke-output/
+launcher/resources/zenthra-mod/*.jar
+launcher/resources/zenthra-mod/index.json
+minecraft-mod/build/
+minecraft-mod/.gradle/
+minecraft-mod/run/
+*.log

@@ -1,0 +1,17 @@
+[
+  { "id": "waypoints", "name": "Waypoints", "description": "Repères personnalisés avec nom, couleur et distance.", "category": "world", "icon": "map-pin", "defaultEnabled": true },
+  { "id": "hit_color", "name": "Hit Color", "description": "Couleur de l'indicateur de coup sur les entités.", "category": "pvp", "icon": "crosshair", "defaultEnabled": true },
+  { "id": "freelook", "name": "Free Look", "description": "Regarder autour de soi sans changer la direction du personnage.", "category": "camera", "icon": "eye", "defaultEnabled": true },
+  { "id": "zoom", "name": "Zoom", "description": "Zoom réglable avec retour fluide au champ de vision.", "category": "camera", "icon": "zoom-in", "defaultEnabled": true },
+  { "id": "keystrokes", "name": "Keystrokes", "description": "Touches WASD, clics et CPS à l'écran.", "category": "hud", "icon": "keyboard", "defaultEnabled": true },
+  { "id": "cps_counter", "name": "CPS Counter", "description": "Clics par seconde gauche et droit.", "category": "hud", "icon": "mouse-pointer-click", "defaultEnabled": false },
+  { "id": "fps_counter", "name": "FPS Counter", "description": "Images par seconde réelles du jeu.", "category": "hud", "icon": "gauge", "defaultEnabled": true },
+  { "id": "armor_hud", "name": "Armor HUD", "description": "Équipement porté et durabilité.", "category": "hud", "icon": "shield", "defaultEnabled": true },
+  { "id": "potion_hud", "name": "Potion HUD", "description": "Effets actifs et durée restante.", "category": "hud", "icon": "flask-conical", "defaultEnabled": true },
+  { "id": "crosshair", "name": "Crosshair", "description": "Viseur personnalisé : style, couleur, taille, épaisseur.", "category": "pvp", "icon": "plus", "defaultEnabled": false },
+  { "id": "toggle_sprint", "name": "Toggle Sprint", "description": "Sprint maintenu sans garder la touche enfoncée.", "category": "pvp", "icon": "zap", "defaultEnabled": false },
+  { "id": "direction_hud", "name": "Direction HUD", "description": "Orientation cardinale et coordonnées.", "category": "hud", "icon": "compass", "defaultEnabled": false },
+  { "id": "session_timer", "name": "Session Timer", "description": "Durée de la session de jeu en cours.", "category": "utility", "icon": "timer", "defaultEnabled": false },
+  { "id": "scoreboard", "name": "Scoreboard", "description": "Position, échelle et fond du scoreboard.", "category": "hud", "icon": "list-ordered", "defaultEnabled": false },
+  { "id": "status_indicators", "name": "Indicateurs d'état", "description": "Sprint maintenu, free look et zoom actifs.", "category": "hud", "icon": "gauge", "defaultEnabled": false }
+]

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "zenthra",
+  "version": "${version}",
+  "name": "Zenthra Client",
+  "description": "Modules PvP et menu « Modules Zenthra » intégré au menu pause.",
+  "authors": ["Zenthra Client"],
+  "license": "MIT",
+  "icon": "assets/zenthra/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["client.zenthra.ZenthraClient"]
+  },
+  "mixins": ["zenthra.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "${minecraft_dependency}",
+    "java": ">=${java_release}",
+    "fabric-api": "*"
+  }
+}

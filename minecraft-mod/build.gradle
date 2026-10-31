@@ -1,0 +1,83 @@
+// Multi-version build: one shared source tree (src/main) plus a small
+// compatibility layer per Minecraft family (src/compat/<family>).
+//   gradlew build -Ptarget=1.21.11      (see versions/*.properties)
+// Obfuscated versions (≤ 1.21.11) use Mojang's official mappings and are
+// remapped; 26.x ships unobfuscated and uses the non-remapping Loom plugin.
+plugins {
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}" apply false
+	id 'net.fabricmc.fabric-loom' version "${loom_version}" apply false
+}
+
+def target = project.findProperty('target') ?: project.default_target
+def targetFile = file("versions/${target}.properties")
+if (!targetFile.exists()) throw new GradleException("Version inconnue : ${target} (voir minecraft-mod/versions/)")
+def tp = new Properties()
+targetFile.withInputStream { tp.load(it) }
+def obfuscated = tp.obfuscated.toBoolean()
+def javaRelease = tp.java_release as int
+
+apply plugin: obfuscated ? 'net.fabricmc.fabric-loom-remap' : 'net.fabricmc.fabric-loom'
+
+version = "${project.mod_version}+${target}"
+group = project.maven_group
+base { archivesName = project.archives_base_name }
+layout.buildDirectory = file("build/${target}")
+
+sourceSets {
+	main {
+		java { srcDir "src/compat/${tp.compat}/java" }
+		resources { srcDir "src/compat/${tp.compat}/resources" }
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${tp.minecraft_version}"
+	if (obfuscated) {
+		mappings loom.officialMojangMappings()
+		modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+		modImplementation "net.fabricmc.fabric-api:fabric-api:${tp.fabric_api_version}"
+	} else {
+		implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+		implementation "net.fabricmc.fabric-api:fabric-api:${tp.fabric_api_version}"
+	}
+}
+
+processResources {
+	def props = [version: project.version, minecraft_dependency: tp.minecraft_dependency, java_release: javaRelease]
+	inputs.properties props
+	filesMatching('fabric.mod.json') { expand props }
+	// Not a Groovy template: mixin class names contain '$'.
+	filesMatching('zenthra.mixins.json') { filter { it.replace('${java_release}', javaRelease as String) } }
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = javaRelease
+	it.options.encoding = 'UTF-8'
+}
+
+java {
+	sourceCompatibility = JavaVersion.toVersion(javaRelease)
+	targetCompatibility = JavaVersion.toVersion(javaRelease)
+}
+
+// Copies the built jar into the launcher, which picks the jar matching each profile's version.
+def outputJar = obfuscated ? tasks.named('remapJar') : tasks.named('jar')
+tasks.register('copyToLauncher', Copy) {
+	dependsOn outputJar
+	from outputJar.flatMap { it.archiveFile }
+	into rootProject.file('../launcher/resources/zenthra-mod')
+	doFirst {
+		delete fileTree(rootProject.file('../launcher/resources/zenthra-mod')) { include "zenthra-client-*+${target}.jar" }
+	}
+	// index.json maps each exact Minecraft version to the jar built for it.
+	doLast {
+		def indexFile = rootProject.file('../launcher/resources/zenthra-mod/index.json')
+		def index = indexFile.exists() ? new groovy.json.JsonSlurper().parse(indexFile) : [formatVersion: 1, versions: [:]]
+		def jarName = outputJar.get().archiveFile.get().asFile.name
+		index.versions = (index.versions as Map).findAll { k, v -> !(v as String).endsWith("+${target}.jar") }
+		tp.supported_versions.split(',').each { index.versions[it.trim()] = jarName }
+		index.versions = index.versions.sort { a, b -> a.key <=> b.key }
+		indexFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(index)) + '\n'
+	}
+}
+build.finalizedBy copyToLauncher

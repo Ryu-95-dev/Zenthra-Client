@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "client.zenthra.mixin",
+  "compatibilityLevel": "JAVA_${java_release}",
+  "client": [
+    "CameraMixins$Fov",
+    "CameraMixins$Rotation",
+    "CameraMixins$Turn",
+    "GuiMixin",
+    "MouseHandlerMixin",
+    "OverlayTextureAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

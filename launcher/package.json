@@ -1,0 +1,89 @@
+{
+  "name": "zenthra-client",
+  "productName": "Zenthra Client",
+  "version": "0.1.0",
+  "description": "Launcher Minecraft Java orienté PvP",
+  "author": "Zenthra Client",
+  "private": true,
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build:main": "node scripts/build-main.mjs",
+    "build:renderer": "vite build",
+    "build": "npm run typecheck && npm run build:main && npm run build:renderer",
+    "test": "vitest run",
+    "typecheck":"tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.electron.json",
+    "build:mod": "powershell -NoProfile -ExecutionPolicy Bypass -File ../minecraft-mod/build-all.ps1",
+    "smoke": "npm run build && node scripts/build-main.mjs --smoke && electron dist-electron/smoke.cjs",
+    "start": "electron .",
+    "icons": "electron scripts/make-icon.cjs",
+    "dist": "npm run build && electron-builder --win"
+  },
+  "build": {
+    "appId": "client.zenthra.launcher",
+    "productName": "Zenthra Client",
+    "directories": {
+      "output": "release"
+    },
+    "asar": false,
+    "files": [
+      "dist/**",
+      "dist-electron/**",
+      "!dist-electron/smoke.*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/zenthra-mod",
+        "to": "zenthra-mod"
+      },
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.png",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Zenthra Client",
+      "language": "1036",
+      "installerLanguages": [
+        "fr_FR"
+      ],
+      "artifactName": "Zenthra-Client-Setup-${version}.${ext}"
+    }
+  },
+  "dependencies": {
+    "adm-zip": "^0.6.1",
+    "lucide-react": "^1.65.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^45.2.0",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "electron-winstaller@5.4.0": true
+  }
+}
