@@ -47,7 +47,8 @@ public class ZenthraTitleScreen extends ZScreen {
 	}
 
 	private final Object background = Platform.texture("textures/gui/menu_background.png");
-	private final Object logo = Platform.texture("textures/gui/logo.png");
+	private static Object logoTexture;
+	private final Object logo = logoTexture();
 	private final List<Action> actions = new ArrayList<>();
 	private final float[] hover = new float[5];
 	private final List<Petal> petals = new ArrayList<>();
@@ -64,6 +65,12 @@ public class ZenthraTitleScreen extends ZScreen {
 
 	public ZenthraTitleScreen() {
 		super(Component.literal("Zenthra Client"));
+	}
+
+	/** "ZENTHRA / CLIENT" logo, 640×220 (also drawn in the modules menu). */
+	static Object logoTexture() {
+		if (logoTexture == null) logoTexture = Platform.texture("textures/gui/logo.png");
+		return logoTexture;
 	}
 
 	private static MainMenuModule settings() {

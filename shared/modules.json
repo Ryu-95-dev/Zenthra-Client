@@ -14,5 +14,15 @@
   { "id": "session_timer", "name": "Session Timer", "description": "Durée de la session de jeu en cours.", "category": "utility", "icon": "timer", "defaultEnabled": false },
   { "id": "scoreboard", "name": "Scoreboard", "description": "Position, échelle et fond du scoreboard.", "category": "hud", "icon": "list-ordered", "defaultEnabled": false },
   { "id": "status_indicators", "name": "Indicateurs d'état", "description": "Sprint maintenu, free look et zoom actifs.", "category": "hud", "icon": "gauge", "defaultEnabled": false },
-  { "id": "main_menu", "name": "Menu principal", "description": "Menu d'accueil Zenthra à la place de l'écran titre de Minecraft.", "category": "utility", "icon": "home", "defaultEnabled": true }
+  { "id": "main_menu", "name": "Menu principal", "description": "Menu d'accueil Zenthra à la place de l'écran titre de Minecraft.", "category": "utility", "icon": "home", "defaultEnabled": true },
+  { "id": "inventory_hud", "name": "Inventory HUD", "description": "Affiche le contenu de ton inventaire à l'écran.", "category": "hud", "icon": "backpack", "defaultEnabled": false },
+  { "id": "totem_counter", "name": "Totem Counter", "description": "Nombre de totems d'immortalité sur toi.", "category": "pvp", "icon": "heart-pulse", "defaultEnabled": false },
+  { "id": "ping_display", "name": "Ping", "description": "Ta latence avec le serveur, en millisecondes.", "category": "hud", "icon": "wifi", "defaultEnabled": false },
+  { "id": "day_counter", "name": "Day Counter", "description": "Numéro du jour en cours dans le monde.", "category": "world", "icon": "sun", "defaultEnabled": false },
+  { "id": "clock", "name": "Horloge", "description": "L'heure réelle, pour ne pas perdre la notion du temps.", "category": "utility", "icon": "clock", "defaultEnabled": false },
+  { "id": "speed_display", "name": "Vitesse", "description": "Ta vitesse de déplacement en blocs par seconde.", "category": "hud", "icon": "wind", "defaultEnabled": false },
+  { "id": "memory_display", "name": "Mémoire", "description": "Mémoire utilisée par le jeu (RAM Java).", "category": "utility", "icon": "memory-stick", "defaultEnabled": false },
+  { "id": "durability_alert", "name": "Durability Alert", "description": "Alerte quand un objet porté va bientôt casser.", "category": "pvp", "icon": "triangle-alert", "defaultEnabled": false },
+  { "id": "nether_coords", "name": "Nether Coords", "description": "Coordonnées correspondantes dans le Nether ou l'Overworld.", "category": "world", "icon": "flame", "defaultEnabled": false },
+  { "id": "break_reminder", "name": "Rappel de pause", "description": "Te rappelle de faire une pause après un temps de jeu choisi.", "category": "utility", "icon": "coffee", "defaultEnabled": false }
 ]

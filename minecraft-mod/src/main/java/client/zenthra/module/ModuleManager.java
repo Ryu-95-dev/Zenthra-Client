@@ -12,6 +12,16 @@ import client.zenthra.module.impl.PotionHudModule;
 import client.zenthra.module.impl.ScoreboardModule;
 import client.zenthra.module.impl.SessionTimerModule;
 import client.zenthra.module.impl.MainMenuModule;
+import client.zenthra.module.impl.InventoryHudModule;
+import client.zenthra.module.impl.TotemCounterModule;
+import client.zenthra.module.impl.PingModule;
+import client.zenthra.module.impl.DayCounterModule;
+import client.zenthra.module.impl.ClockModule;
+import client.zenthra.module.impl.SpeedModule;
+import client.zenthra.module.impl.MemoryModule;
+import client.zenthra.module.impl.DurabilityAlertModule;
+import client.zenthra.module.impl.NetherCoordsModule;
+import client.zenthra.module.impl.BreakReminderModule;
 import client.zenthra.module.impl.StatusIndicatorsModule;
 import client.zenthra.module.impl.ToggleSprintModule;
 import client.zenthra.module.impl.WaypointsModule;
@@ -35,7 +45,17 @@ public final class ModuleManager {
 		new SessionTimerModule(),
 		new ScoreboardModule(),
 		new StatusIndicatorsModule(),
-		new MainMenuModule()
+		new MainMenuModule(),
+		new InventoryHudModule(),
+		new TotemCounterModule(),
+		new PingModule(),
+		new DayCounterModule(),
+		new ClockModule(),
+		new SpeedModule(),
+		new MemoryModule(),
+		new DurabilityAlertModule(),
+		new NetherCoordsModule(),
+		new BreakReminderModule()
 	);
 
 	public List<Module> all() {

@@ -1,5 +1,15 @@
 import {
+  Backpack,
   Box,
+  Clock,
+  Coffee,
+  Flame,
+  HeartPulse,
+  MemoryStick,
+  Sun,
+  TriangleAlert,
+  Wifi,
+  Wind,
   Compass,
   Crosshair,
   Eye,
@@ -41,6 +51,16 @@ export const MODULE_ICONS: Record<string, LucideIcon> = {
   timer: Timer,
   'list-ordered': ListOrdered,
   home: House,
+  backpack: Backpack,
+  'heart-pulse': HeartPulse,
+  wifi: Wifi,
+  sun: Sun,
+  clock: Clock,
+  wind: Wind,
+  'memory-stick': MemoryStick,
+  'triangle-alert': TriangleAlert,
+  flame: Flame,
+  coffee: Coffee,
 };
 
 export const PROFILE_ICONS: Record<ProfileIcon, LucideIcon> = {

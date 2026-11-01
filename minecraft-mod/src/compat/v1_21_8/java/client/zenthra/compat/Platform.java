@@ -114,6 +114,11 @@ public final class Platform {
 		return level.dimension().location().toString();
 	}
 
+	/** Time of day of the level in ticks (24000 per day). */
+	public static long dayTime(net.minecraft.world.level.Level level) {
+		return level.getDayTime();
+	}
+
 	public static String singleplayerWorldName() {
 		var server = mc().getSingleplayerServer();
 		return server == null ? null : server.getWorldData().getLevelName();
