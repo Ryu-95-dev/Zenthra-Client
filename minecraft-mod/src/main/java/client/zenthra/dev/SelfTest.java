@@ -59,7 +59,7 @@ public final class SelfTest {
 			mc.options.pauseOnLostFocus = false;
 			for (Module m : ZenthraClient.modules().all()) {
 				if (m instanceof CpsCounterModule || m instanceof DirectionHudModule || m instanceof CrosshairModule
-					|| m instanceof client.zenthra.module.impl.StatusIndicatorsModule) m.setEnabled(true);
+					|| m instanceof client.zenthra.module.impl.StatusIndicatorsModule || m instanceof client.zenthra.module.impl.TargetHudModule) m.setEnabled(true);
 			}
 			Platform.setScreen(null);
 		}));

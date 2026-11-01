@@ -26,6 +26,7 @@ import client.zenthra.module.impl.BreakReminderModule;
 import client.zenthra.module.impl.MotionBlurModule;
 import client.zenthra.module.impl.OptimizationModule;
 import client.zenthra.module.impl.StatusIndicatorsModule;
+import client.zenthra.module.impl.TargetHudModule;
 import client.zenthra.module.impl.ToggleSprintModule;
 import client.zenthra.module.impl.WaypointsModule;
 import client.zenthra.module.impl.ZoomModule;
@@ -61,7 +62,8 @@ public final class ModuleManager {
 		new BreakReminderModule(),
 		new OptimizationModule(),
 		new MotionBlurModule(),
-		new HitboxModule()
+		new HitboxModule(),
+		new TargetHudModule()
 	);
 
 	public List<Module> all() {

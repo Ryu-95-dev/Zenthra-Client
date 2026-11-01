@@ -27,5 +27,6 @@
   { "id": "break_reminder", "name": "Rappel de pause", "description": "Te rappelle de faire une pause après un temps de jeu choisi.", "category": "utility", "icon": "coffee", "defaultEnabled": false },
   { "id": "optimization", "name": "Zenthra Optimisation", "description": "Plus de FPS : moins de particules, entités lointaines masquées, sans ombres ni nuages.", "category": "utility", "icon": "rocket", "defaultEnabled": false },
   { "id": "motion_blur", "name": "Motion Blur", "description": "Flou de mouvement léger calculé par la carte graphique.", "category": "camera", "icon": "waves", "defaultEnabled": false },
-  { "id": "hitbox", "name": "Hitbox", "description": "Affiche les hitbox des joueurs et entités (comme F3+B).", "category": "pvp", "icon": "scan", "defaultEnabled": false }
+  { "id": "hitbox", "name": "Hitbox", "description": "Affiche les hitbox des joueurs et entités (comme F3+B).", "category": "pvp", "icon": "scan", "defaultEnabled": false },
+  { "id": "target_hud", "name": "Target HUD", "description": "Cœurs restants du joueur que tu vises.", "category": "pvp", "icon": "heart", "defaultEnabled": false }
 ]
