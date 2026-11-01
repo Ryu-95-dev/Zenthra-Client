@@ -6,6 +6,8 @@ import client.zenthra.dev.SelfTest;
 import client.zenthra.diag.Telemetry;
 import client.zenthra.gui.ZenthraScreen;
 import client.zenthra.gui.HudEditorScreen;
+import client.zenthra.gui.ZenthraTitleScreen;
+import client.zenthra.module.impl.MainMenuModule;
 import client.zenthra.module.HudModule;
 import client.zenthra.module.Module;
 import client.zenthra.module.ModuleManager;
@@ -16,6 +18,7 @@ import client.zenthra.module.impl.WaypointsModule;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +88,14 @@ public final class ZenthraClient implements ClientModInitializer {
 
 		// "Modules Zenthra" / "Zenthra Skills" button (follows the game language) in the pause menu, under the existing buttons.
 		Platform.installPauseButton(() -> Component.translatable(ZenthraScreen.TITLE_KEY), ZenthraScreen::new);
+
+		// Zenthra main menu instead of Minecraft's title screen, as soon as the title screen is set up.
+		ScreenEvents.AFTER_INIT.register((client, screen, w, h) -> {
+			if (!Platform.isTitleScreen(screen) || !modules.get(MainMenuModule.class).isEnabled()) return;
+			client.execute(() -> {
+				if (Platform.screen() == screen) Platform.setScreen(new ZenthraTitleScreen());
+			});
+		});
 
 		SelfTest.installIfEnabled();
 		LOGGER.info("Zenthra Client chargé ({} modules).", modules.all().size());

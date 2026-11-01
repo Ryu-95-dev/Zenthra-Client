@@ -27,6 +27,12 @@ public interface Gfx {
 	/** 18×18 icon of a status effect. */
 	void effectIcon(MobEffectInstance effect, int x, int y);
 
+	/**
+	 * Draws part of a texture (id from {@link Platform#texture} or a skin) into
+	 * the rectangle x, y, w, h, scaled; u, v, uw, vh select the source pixels.
+	 */
+	void texture(Object id, int x, int y, int w, int h, float u, float v, int uw, int vh, int texW, int texH);
+
 	void push();
 
 	void translate(float x, float y);

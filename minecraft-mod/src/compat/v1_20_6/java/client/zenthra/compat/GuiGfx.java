@@ -1,6 +1,7 @@
 package client.zenthra.compat;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -33,6 +34,11 @@ final class GuiGfx implements Gfx {
 	@Override
 	public void effectIcon(MobEffectInstance effect, int x, int y) {
 		g.blit(x, y, 0, 18, 18, Minecraft.getInstance().getMobEffectTextures().get(effect.getEffect()));
+	}
+
+	@Override
+	public void texture(Object id, int x, int y, int w, int h, float u, float v, int uw, int vh, int texW, int texH) {
+		g.blit((ResourceLocation) id, x, y, w, h, u, v, uw, vh, texW, texH);
 	}
 
 	@Override public void push() { g.pose().pushPose(); }

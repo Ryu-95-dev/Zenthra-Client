@@ -6,6 +6,7 @@ import {
   FlaskConical,
   Gauge,
   Hammer,
+  House,
   Keyboard,
   ListOrdered,
   MapPin,
@@ -39,6 +40,7 @@ export const MODULE_ICONS: Record<string, LucideIcon> = {
   compass: Compass,
   timer: Timer,
   'list-ordered': ListOrdered,
+  home: House,
 };
 
 export const PROFILE_ICONS: Record<ProfileIcon, LucideIcon> = {

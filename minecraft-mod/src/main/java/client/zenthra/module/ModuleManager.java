@@ -11,6 +11,7 @@ import client.zenthra.module.impl.KeystrokesModule;
 import client.zenthra.module.impl.PotionHudModule;
 import client.zenthra.module.impl.ScoreboardModule;
 import client.zenthra.module.impl.SessionTimerModule;
+import client.zenthra.module.impl.MainMenuModule;
 import client.zenthra.module.impl.StatusIndicatorsModule;
 import client.zenthra.module.impl.ToggleSprintModule;
 import client.zenthra.module.impl.WaypointsModule;
@@ -33,7 +34,8 @@ public final class ModuleManager {
 		new DirectionHudModule(),
 		new SessionTimerModule(),
 		new ScoreboardModule(),
-		new StatusIndicatorsModule()
+		new StatusIndicatorsModule(),
+		new MainMenuModule()
 	);
 
 	public List<Module> all() {

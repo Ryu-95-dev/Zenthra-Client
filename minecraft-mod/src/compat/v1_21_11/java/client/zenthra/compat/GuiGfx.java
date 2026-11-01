@@ -1,6 +1,7 @@
 package client.zenthra.compat;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -41,6 +42,11 @@ final class GuiGfx implements Gfx {
 	@Override
 	public void effectIcon(MobEffectInstance effect, int x, int y) {
 		g.blitSprite(RenderPipelines.GUI_TEXTURED, Gui.getMobEffectSprite(effect.getEffect()), x, y, 18, 18);
+	}
+
+	@Override
+	public void texture(Object id, int x, int y, int w, int h, float u, float v, int uw, int vh, int texW, int texH) {
+		g.blit(RenderPipelines.GUI_TEXTURED, (Identifier) id, x, y, u, v, w, h, uw, vh, texW, texH);
 	}
 
 	@Override public void push() { g.pose().pushMatrix(); }

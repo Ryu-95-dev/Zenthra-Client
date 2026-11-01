@@ -2,7 +2,9 @@ package client.zenthra.dev;
 
 import client.zenthra.ZenthraClient;
 import client.zenthra.gui.ZenthraScreen;
+import client.zenthra.gui.FriendsScreen;
 import client.zenthra.gui.HudEditorScreen;
+import client.zenthra.gui.ZenthraTitleScreen;
 import client.zenthra.gui.ModuleSettingsScreen;
 import client.zenthra.gui.WaypointsScreen;
 import client.zenthra.module.Module;
@@ -38,6 +40,7 @@ public final class SelfTest {
 	private String pendingShot;
 	private boolean started;
 	private int idleTicks;
+	private int menuTicks;
 
 	public static void installIfEnabled() {
 		if (Boolean.getBoolean("zenthra.selftest")) new SelfTest().install();
@@ -164,7 +167,29 @@ public final class SelfTest {
 			// instead of the title screen: report it and move on to the title screen.
 			if (++idleTicks % 100 == 0) {
 				log("en attente de l'écran titre · écran=" + name(mc) + " · overlay=" + (Platform.loadingOverlay()));
-				if (!Platform.loadingOverlay() && !Platform.isTitleScreen(Platform.screen())) Platform.setScreen(Platform.titleScreen());
+				if (!Platform.loadingOverlay() && !Platform.isTitleScreen(Platform.screen()) && !(Platform.screen() instanceof ZenthraTitleScreen)
+					&& !(Platform.screen() instanceof FriendsScreen)) Platform.setScreen(Platform.titleScreen());
+			}
+			// Zenthra main menu: capture it and its friends screen, then "Solo" (the demo world).
+			if (Platform.screen() instanceof ZenthraTitleScreen menu && !Platform.loadingOverlay()) {
+				if (++menuTicks == 1) log("menu principal Zenthra affiché");
+				if (menuTicks == 40) {
+					pendingShot = "00-main-menu";
+					log("menu principal : joueur=" + Platform.playerName() + " · skin=" + (Platform.playerSkin() != null));
+				}
+				if (menuTicks == 50) menu.openFriends();
+				if (menuTicks == 90) {
+					started = true;
+					wait = 40;
+					log("menu principal : bouton Solo (monde démo)");
+					menu.playSolo();
+				}
+				return;
+			}
+			if (Platform.screen() instanceof FriendsScreen) {
+				if (++menuTicks == 70) pendingShot = "00b-friends";
+				if (menuTicks == 80) Platform.setScreen(new ZenthraTitleScreen());
+				return;
 			}
 			if (Platform.isTitleScreen(Platform.screen()) && !Platform.loadingOverlay()) {
 				started = true;

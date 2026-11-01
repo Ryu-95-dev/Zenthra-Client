@@ -19,6 +19,7 @@ import net.minecraft.client.CloudStatus;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.Options;
 import net.minecraft.client.ParticleStatus;
 import net.minecraft.client.Screenshot;
@@ -268,5 +269,41 @@ public final class Platform {
 		if (o == null) o = sb.addObjective("zenthra", ObjectiveCriteria.DUMMY, Component.literal("Zenthra"), ObjectiveCriteria.RenderType.INTEGER, true, null);
 		sb.setDisplayObjective(DisplaySlot.SIDEBAR, o);
 		for (int i = 1; i <= 5; i++) sb.getOrCreatePlayerScore(ScoreHolder.forNameOnly("Joueur " + i), o).set(i * 10);
+	}
+
+	// ---- Main menu ----
+
+	/** Texture of this mod (path under assets/zenthra/). */
+	public static Object texture(String path) {
+		return ResourceLocation.fromNamespaceAndPath("zenthra", path);
+	}
+
+	public static SkinInfo playerSkin() {
+		net.minecraft.client.resources.PlayerSkin skin = mc().getSkinManager().getInsecureSkin(mc().getGameProfile());
+		return new SkinInfo(skin.texture(), skin.model() == net.minecraft.client.resources.PlayerSkin.Model.SLIM);
+	}
+	public static String playerName() {
+		return mc().getUser().getName();
+	}
+
+	public static boolean isDemo() {
+		return mc().isDemo();
+	}
+
+	/**
+	 * Finds the button with this translation key on a vanilla title screen built off
+	 * screen; presses it when press is true. Returns whether it exists and is active.
+	 */
+	public static boolean titleAction(String key, boolean press) {
+		TitleScreen title = new TitleScreen();
+		int w = mc().getWindow().getGuiScaledWidth(), h = mc().getWindow().getGuiScaledHeight();
+		title.init(mc(), w, h);
+		for (Button b : buttonsOf(title)) {
+			if (!hasTranslationKey(b.getMessage(), key)) continue;
+			if (!b.active) return false;
+			if (press) press(b);
+			return true;
+		}
+		return false;
 	}
 }

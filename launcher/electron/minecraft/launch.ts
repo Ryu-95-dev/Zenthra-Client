@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import type { GameState, LogLine } from '../../../shared/types';
-import { prepareZenthraMod } from '../services/zenthraMod';
+import { prepareZenthraMod, startFriendsBridge } from '../services/zenthraMod';
 import { getLaunchIdentity, type LaunchIdentity } from '../services/auth';
 import { redact, toMessage, UserError } from '../services/errors';
 import { cancelledError } from '../services/http';
@@ -109,6 +109,7 @@ export async function launchProfile(profileId: string, opts: LaunchOptions = {})
 
     child = spawn(java, args, { cwd: gameDir, windowsHide: false, env: { ...process.env, ZENTHRA_PROFILE: profile.id } });
     const pid = child.pid ?? 0;
+    const stopFriends = startFriendsBridge(profile);
     for (const [stream, src] of [['stdout', child.stdout], ['stderr', child.stderr]] as const) {
       let buf = '';
       src?.on('data', (d: Buffer) => {
@@ -123,6 +124,7 @@ export async function launchProfile(profileId: string, opts: LaunchOptions = {})
       setGame({ status: 'crashed', profileId, exitCode: null });
     });
     child.on('exit', (code) => {
+      stopFriends();
       log('launcher', `Minecraft s'est arrêté (code ${code}).`);
       logStream.end();
       child = null;

@@ -13,5 +13,6 @@
   { "id": "direction_hud", "name": "Direction HUD", "description": "Orientation cardinale et coordonnées.", "category": "hud", "icon": "compass", "defaultEnabled": false },
   { "id": "session_timer", "name": "Session Timer", "description": "Durée de la session de jeu en cours.", "category": "utility", "icon": "timer", "defaultEnabled": false },
   { "id": "scoreboard", "name": "Scoreboard", "description": "Position, échelle et fond du scoreboard.", "category": "hud", "icon": "list-ordered", "defaultEnabled": false },
-  { "id": "status_indicators", "name": "Indicateurs d'état", "description": "Sprint maintenu, free look et zoom actifs.", "category": "hud", "icon": "gauge", "defaultEnabled": false }
+  { "id": "status_indicators", "name": "Indicateurs d'état", "description": "Sprint maintenu, free look et zoom actifs.", "category": "hud", "icon": "gauge", "defaultEnabled": false },
+  { "id": "main_menu", "name": "Menu principal", "description": "Menu d'accueil Zenthra à la place de l'écran titre de Minecraft.", "category": "utility", "icon": "home", "defaultEnabled": true }
 ]

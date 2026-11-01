@@ -288,4 +288,43 @@ public final class Platform {
 		sb.setDisplayObjective(DisplaySlot.SIDEBAR, o);
 		for (int i = 1; i <= 5; i++) sb.getOrCreatePlayerScore(ScoreHolder.forNameOnly("Joueur " + i), o).set(i * 10);
 	}
+
+	// ---- Main menu ----
+
+	/** Texture of this mod (path under assets/zenthra/). */
+	public static Object texture(String path) {
+		return Identifier.fromNamespaceAndPath("zenthra", path);
+	}
+
+	private static java.util.function.Supplier<net.minecraft.world.entity.player.PlayerSkin> skinLookup;
+
+	public static SkinInfo playerSkin() {
+		if (skinLookup == null) skinLookup = mc().getSkinManager().createLookup(mc().getGameProfile(), false);
+		net.minecraft.world.entity.player.PlayerSkin skin = skinLookup.get();
+		return new SkinInfo(skin.body().texturePath(), skin.model() == net.minecraft.world.entity.player.PlayerModelType.SLIM);
+	}
+	public static String playerName() {
+		return mc().getUser().getName();
+	}
+
+	public static boolean isDemo() {
+		return mc().isDemo();
+	}
+
+	/**
+	 * Finds the button with this translation key on a vanilla title screen built off
+	 * screen; presses it when press is true. Returns whether it exists and is active.
+	 */
+	public static boolean titleAction(String key, boolean press) {
+		TitleScreen title = new TitleScreen();
+		int w = mc().getWindow().getGuiScaledWidth(), h = mc().getWindow().getGuiScaledHeight();
+		title.init(w, h);
+		for (Button b : buttonsOf(title)) {
+			if (!hasTranslationKey(b.getMessage(), key)) continue;
+			if (!b.active) return false;
+			if (press) press(b);
+			return true;
+		}
+		return false;
+	}
 }

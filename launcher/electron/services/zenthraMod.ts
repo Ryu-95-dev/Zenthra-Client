@@ -8,6 +8,7 @@ import { readJson, writeJson } from './jsonStore';
 import { bundledModDir, instanceDir } from './paths';
 import { getProfile } from './profiles';
 import { executeInstall, FABRIC_API_PROJECT, planInstall } from './modrinth';
+import { getCommunity } from './community';
 
 export const MODULES = modulesCatalog as ModuleInfo[];
 const MOD_FILE = 'zenthra-client.jar';
@@ -112,4 +113,31 @@ export async function prepareZenthraMod(profile: Profile, task: Task): Promise<v
     const plan = await planInstall(profile.id, FABRIC_API_PROJECT, null, 'mod');
     await executeInstall(profile.id, plan, 'mod', null);
   }
+}
+
+/**
+ * While the game runs, hands the friend list to the in-game "Amis" screen through
+ * <instance>/zenthra/friends.json (refreshed every minute). Only names, online
+ * status and the activity friends chose to share are written; the file is
+ * removed when the game stops. Returns the function that stops the refresh.
+ */
+export function startFriendsBridge(profile: Profile): () => void {
+  if (unavailableReason(profile)) return () => undefined;
+  const file = path.join(instanceDir(profile.id), 'zenthra', 'friends.json');
+  const write = async () => {
+    const c = await getCommunity().catch((err: unknown) => ({ status: 'error' as const, message: String(err) }));
+    await writeJson(file, {
+      formatVersion: 1,
+      writtenAt: Date.now(),
+      status: c.status,
+      message: c.status === 'error' ? c.message : undefined,
+      friends: c.status === 'ok' ? c.friends.map((f) => ({ name: f.name, online: f.online, activity: f.activity })) : [],
+    }).catch(() => undefined);
+  };
+  void write();
+  const timer = setInterval(() => void write(), 60_000);
+  return () => {
+    clearInterval(timer);
+    fs.rmSync(file, { force: true });
+  };
 }
