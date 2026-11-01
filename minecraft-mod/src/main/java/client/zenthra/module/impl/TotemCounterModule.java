@@ -11,7 +11,8 @@ import net.minecraft.world.item.Items;
 
 /** Number of Totems of Undying in the inventory and the off hand. */
 public class TotemCounterModule extends HudModule {
-	private static final ItemStack ICON = new ItemStack(Items.TOTEM_OF_UNDYING);
+	// Created on first use: on 26.x items cannot be built while the game is still loading.
+	private ItemStack icon;
 	private final ColorSetting color = add(new ColorSetting("color", "Couleur", 0xFFFFFFFF));
 	private final BooleanSetting background = add(new BooleanSetting("background", "Fond", true));
 
@@ -36,7 +37,8 @@ public class TotemCounterModule extends HudModule {
 		width = 22 + Draw.font().width(text) + 4;
 		height = 18;
 		if (background.get()) g.fill(0, 0, width, height, Draw.BG);
-		g.item(ICON, 1, 1);
+		if (icon == null) icon = new ItemStack(Items.TOTEM_OF_UNDYING);
+		g.item(icon, 1, 1);
 		g.text(text, 20, 5, n == 0 ? 0xFFF87171 : color.get(), true);
 	}
 }
