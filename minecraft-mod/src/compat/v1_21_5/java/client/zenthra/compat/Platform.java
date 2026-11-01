@@ -213,6 +213,15 @@ public final class Platform {
 
 	// ---- Performance view (vanilla video options) ----
 
+	/** Particle option: 0 = all, 1 = decreased, 2 = minimal. */
+	public static int particlesLevel() {
+		return mc().options.particles().get().ordinal();
+	}
+
+	public static void setParticlesLevel(int level) {
+		mc().options.particles().set(ParticleStatus.values()[Math.max(0, Math.min(2, level))]);
+	}
+
 	private static int next(int[] steps, int current) {
 		for (int s : steps) if (s > current) return s;
 		return steps[0];
@@ -313,4 +322,12 @@ public final class Platform {
 		}
 		return false;
 	}
-}
+
+	// ---- Motion blur (post effect) ----
+
+	/** 1.21.2–1.21.5 cannot keep the previous frame in a post effect: no motion blur. */
+	public static boolean motionBlurSupported() {
+		return false;
+	}
+
+	public static void motionBlur(int level) {}}

@@ -1,7 +1,9 @@
 package client.zenthra.module.impl;
 
 import client.zenthra.ZenthraClient;
+import client.zenthra.gui.Ui;
 import client.zenthra.gui.WaypointEditScreen;
+import client.zenthra.gui.ZIcon;
 import client.zenthra.module.Category;
 import client.zenthra.module.Module;
 import client.zenthra.module.setting.BooleanSetting;
@@ -28,6 +30,8 @@ public class WaypointsModule extends Module {
 		public boolean visible = true;
 		/** World or server it belongs to ("server:<ip>" / "local:<world>"); null = every world. */
 		public String world;
+		/** Marker icon (one of {@link #ICONS}); null = first letter of the name. */
+		public String icon;
 
 		public Waypoint(String name, int x, int y, int z, String dimension, int color) {
 			this.name = name;
@@ -39,8 +43,13 @@ public class WaypointsModule extends Module {
 		}
 	}
 
+	/** Icons a waypoint marker can use instead of its first letter. */
+	public static final List<String> ICONS = List.of("house", "swords", "chest", "star", "skull", "flag", "mountain", "gem",
+		"pickaxe", "tree", "portal", "heart", "bed", "castle", "anchor", "tent");
+
 	private final List<Waypoint> waypoints = new ArrayList<>();
 	private final BooleanSetting showDistance = add(new BooleanSetting("show_distance", "Afficher la distance", true));
+	private final NumberSetting markerScale = add(new NumberSetting("marker_scale", "Taille des repères", 0.8, 0.5, 1.5, 0.05, "x"));
 	private final NumberSetting maxDistance = add(new NumberSetting("max_distance", "Distance maximale d'affichage", 2000, 50, 10000, 50, " blocs"));
 	private final ChoiceSetting scope = add(new ChoiceSetting("scope", "Repères affichés",
 		List.of("world", "all"), List.of("Monde ou serveur actuel", "Tous les mondes"), "world"));
@@ -132,14 +141,37 @@ public class WaypointsModule extends Module {
 			float sy = (1f - (p.y / p.w * 0.5f + 0.5f)) * sh;
 			if (sx < -50 || sx > sw + 50 || sy < -20 || sy > sh + 20) continue;
 
-			String text = showDistance.get() ? wp.name + " (" + Math.round(dist) + " m)" : wp.name;
-			int w = Draw.font().width(text);
-			int x = Math.round(sx - w / 2f);
-			int y = Math.round(sy);
-			g.fill(x - 4, y - 3, x + w + 4, y + 10, 0x90101014);
-			g.fill(x - 4, y + 10, x + w + 4, y + 11, wp.color | 0xFF000000);
-			g.text(text, x, y, 0xFFFFFFFF, true);
+			drawMarker(g, wp, sx, sy, markerScale.getFloat(), showDistance.get() ? Math.round(dist) + " m" : null);
 		}
+	}
+
+	/**
+	 * Small marker: a coloured square with the waypoint's icon or first letter, the
+	 * name underneath (and the distance below it), centred on (cx, cy).
+	 */
+	public static void drawMarker(Gfx g, Waypoint wp, float cx, float cy, float scale, String distance) {
+		g.push();
+		g.translate(cx, cy);
+		g.scale(scale);
+		int s = 12;
+		Ui.round(g, -s / 2 - 1, -s - 1, s + 2, s + 2, 0x60000000);
+		Ui.round(g, -s / 2, -s, s, s, wp.color | 0xFF000000);
+		g.fill(-s / 2 + 1, -s, s / 2 - 1, -s + 1, 0x40FFFFFF);
+		ZIcon icon = iconOf(wp);
+		if (icon != null) {
+			Ui.icon(g, icon, -s / 2 + 2, -s + 2, s - 4, true);
+		} else {
+			String letter = wp.name.isEmpty() ? "?" : wp.name.substring(0, 1).toUpperCase(java.util.Locale.ROOT);
+			g.text(letter, -Draw.font().width(letter) / 2 + 1, -s + 2, 0xFFFFFFFF, true);
+		}
+		g.text(wp.name, -Draw.font().width(wp.name) / 2, 3, 0xFFFFFFFF, true);
+		if (distance != null) g.text(distance, -Draw.font().width(distance) / 2, 13, 0xFFD0C8DC, true);
+		g.pop();
+	}
+
+	public static ZIcon iconOf(Waypoint wp) {
+		if (wp.icon == null || !ICONS.contains(wp.icon)) return null;
+		return ZIcon.valueOf("WP_" + wp.icon.toUpperCase(java.util.Locale.ROOT));
 	}
 
 	public void loadWaypoints(JsonArray arr) {
@@ -157,6 +189,7 @@ public class WaypointsModule extends Module {
 					parseColor(o.has("color") ? o.get("color").getAsString() : "#A855F7"));
 				wp.visible = !o.has("visible") || o.get("visible").getAsBoolean();
 				if (o.has("world") && o.get("world").isJsonPrimitive()) wp.world = o.get("world").getAsString();
+				if (o.has("icon") && o.get("icon").isJsonPrimitive()) wp.icon = o.get("icon").getAsString();
 				waypoints.add(wp);
 			} catch (RuntimeException ignored) {
 				// Skip malformed entries rather than losing the whole list.
@@ -176,6 +209,7 @@ public class WaypointsModule extends Module {
 			o.addProperty("color", String.format("#%06X", wp.color & 0xFFFFFF));
 			o.addProperty("visible", wp.visible);
 			if (wp.world != null) o.addProperty("world", wp.world);
+			if (wp.icon != null) o.addProperty("icon", wp.icon);
 			arr.add(o);
 		}
 		return arr;

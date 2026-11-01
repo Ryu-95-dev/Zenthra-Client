@@ -86,6 +86,9 @@ public final class SelfTest {
 		steps.add(new Step(5, null, () -> {
 			WaypointsModule wp = ZenthraClient.modules().get(WaypointsModule.class);
 			var p = mc.player;
+			var marked = new WaypointsModule.Waypoint("Maison", p.getBlockX() - (int) (-Math.sin(Math.toRadians(p.getYRot())) * 20), p.getBlockY() + 2, p.getBlockZ() - (int) (Math.cos(Math.toRadians(p.getYRot())) * 20), wp.currentDimension(), 0xFF22C55E);
+			marked.icon = "house";
+			wp.add(marked);
 			wp.add(new WaypointsModule.Waypoint("Test", p.getBlockX() + (int) (-Math.sin(Math.toRadians(p.getYRot())) * 12), p.getBlockY(), p.getBlockZ() + (int) (Math.cos(Math.toRadians(p.getYRot())) * 12), wp.currentDimension(), 0xFFA855F7));
 			Platform.setScreen(new WaypointsScreen(null));
 		}));
@@ -154,6 +157,21 @@ public final class SelfTest {
 			}
 		}));
 		steps.add(new Step(20, "16-new-modules", () -> log("nouveaux modules affichés")));
+		// Optimisation module: turns options down, then restores them exactly.
+		steps.add(new Step(5, null, () -> {
+			log(String.format("optimisation avant : particules=%d entités=%.2f ombres=%s", Platform.particlesLevel(), mc.options.entityDistanceScaling().get(), mc.options.entityShadows().get()));
+			ZenthraClient.modules().get(client.zenthra.module.impl.OptimizationModule.class).setEnabled(true);
+		}));
+		steps.add(new Step(5, null, () -> log(String.format("optimisation active : particules=%d entités=%.2f ombres=%s", Platform.particlesLevel(), mc.options.entityDistanceScaling().get(), mc.options.entityShadows().get()))));
+		steps.add(new Step(5, null, () -> {
+			ZenthraClient.modules().get(client.zenthra.module.impl.OptimizationModule.class).setEnabled(false);
+			log(String.format("optimisation coupée : particules=%d entités=%.2f ombres=%s", Platform.particlesLevel(), mc.options.entityDistanceScaling().get(), mc.options.entityShadows().get()));
+		}));
+		// Motion blur: GPU post effect (not available on 1.21.2–1.21.5).
+		steps.add(new Step(5, null, () -> ZenthraClient.modules().get(client.zenthra.module.impl.MotionBlurModule.class).setEnabled(true)));
+		steps.add(new Step(10, null, () -> mc.player.turn(400, 0)));
+		steps.add(new Step(2, "17-motion-blur", () -> log("motion blur : supporté=" + Platform.motionBlurSupported())));
+		steps.add(new Step(10, null, () -> ZenthraClient.modules().get(client.zenthra.module.impl.MotionBlurModule.class).setEnabled(false)));
 		steps.add(new Step(10, null, () -> {
 			log("terminé");
 			mc.stop();

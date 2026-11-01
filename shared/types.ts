@@ -76,6 +76,8 @@ export interface Settings {
   afterLaunch: 'keep' | 'minimize' | 'hide';
   language: 'fr';
   showOnlineStatus: boolean;
+  /** Discord Rich Presence ("Joue à Zenthra Client"), through the local Discord app only. */
+  discordPresence: boolean;
   presenceServerUrl: string;
   msClientId: string;
   selectedProfileId: string;

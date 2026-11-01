@@ -239,6 +239,13 @@ const ICONS = [
   ['SEARCH', 'Search'], ['CLOSE', 'X'], ['CHECK', 'Check'], ['RESET', 'RotateCcw'],
   ['CHEVRON', 'ChevronRight'], ['SETTINGS', 'Settings'], ['USERS', 'Users'], ['KEY', 'Keyboard'],
   ['SAVE', 'Save'],
+  // Waypoint markers
+  ['WP_HOUSE', 'House'], ['WP_SWORDS', 'Swords'], ['WP_CHEST', 'Package'], ['WP_STAR', 'Star'],
+  ['WP_SKULL', 'Skull'], ['WP_FLAG', 'Flag'], ['WP_MOUNTAIN', 'Mountain'], ['WP_GEM', 'Gem'],
+  ['WP_PICKAXE', 'Pickaxe'], ['WP_TREE', 'TreePine'], ['WP_PORTAL', 'CircleDot'], ['WP_HEART', 'Heart'],
+  ['WP_BED', 'BedDouble'], ['WP_CASTLE', 'Castle'], ['WP_ANCHOR', 'Anchor'], ['WP_TENT', 'Tent'],
+  // Optimisation, motion blur
+  ['OPTIMIZE', 'Rocket'], ['BLUR', 'Waves'],
 ];
 
 function iconSvgs(color) {

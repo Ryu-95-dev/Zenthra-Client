@@ -3,6 +3,7 @@ package client.zenthra.module.impl;
 import client.zenthra.compat.Platform;
 import client.zenthra.module.Category;
 import client.zenthra.module.Module;
+import client.zenthra.module.setting.BooleanSetting;
 import client.zenthra.module.setting.ColorSetting;
 import client.zenthra.module.setting.NumberSetting;
 
@@ -15,6 +16,11 @@ public class HitColorModule extends Module {
 
 	private final ColorSetting color = add(new ColorSetting("color", "Couleur", 0xFFA855F7));
 	private final NumberSetting opacity = add(new NumberSetting("opacity", "Intensité", 0.7, 0.1, 1.0, 0.05, ""));
+	private final BooleanSetting armor = add(new BooleanSetting("armor", "Colorer aussi l'armure", true));
+
+	public boolean tintsArmor() {
+		return armor.get();
+	}
 
 	public HitColorModule() {
 		super("hit_color", "Hit Color", "Couleur de l'indicateur de coup sur les entités.", Category.PVP, true);

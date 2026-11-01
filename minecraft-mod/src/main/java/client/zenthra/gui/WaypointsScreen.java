@@ -57,7 +57,10 @@ public class WaypointsScreen extends BaseScreen {
 		for (Waypoint wp : list) {
 			boolean inside = my >= top && my < bottom;
 			g.fill(x, y, x + w, y + rowH - 4, hovered(mx, my, x, y, w, rowH - 4) && inside ? CARD_HOVER : CARD);
-			g.fill(x + 6, y + 7, x + 14, y + 15, wp.color | 0xFF000000);
+			Ui.round(g, x + 4, y + 5, 12, 12, wp.color | 0xFF000000);
+			ZIcon wpIcon = WaypointsModule.iconOf(wp);
+			if (wpIcon != null) Ui.icon(g, wpIcon, x + 6, y + 7, 8, true);
+			else g.text(wp.name.isEmpty() ? "?" : wp.name.substring(0, 1).toUpperCase(java.util.Locale.ROOT), x + 8, y + 7, 0xFFFFFFFF, true);
 			g.text(font.plainSubstrByWidth(wp.name, w - 200), x + 20, y + 3, wp.visible ? TEXT : MUTED, false);
 			String info = wp.x + " " + wp.y + " " + wp.z + (wp.dimension.equals(dim) && minecraft.player != null
 				? " · " + Math.round(Math.sqrt(minecraft.player.distanceToSqr(wp.x + 0.5, wp.y, wp.z + 0.5))) + " m"

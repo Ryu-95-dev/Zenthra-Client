@@ -4,8 +4,11 @@
   "package": "client.zenthra.mixin",
   "compatibilityLevel": "JAVA_${java_release}",
   "client": [
+    "ArmorOverlayMixin$Equipment",
+    "ArmorOverlayMixin$Layer",
     "CameraMixins$Rotation",
     "CameraMixins$Turn",
+    "GameRendererAccessor",
     "GuiMixin",
     "MouseHandlerMixin",
     "OverlayTextureAccessor"

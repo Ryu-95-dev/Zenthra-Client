@@ -6,6 +6,7 @@ import { installFabric, listFabricLoaders } from './minecraft/fabric';
 import { listForgeLikeVersions } from './minecraft/forge';
 import { getGameState, getRecentLogs, killGame, launchProfile } from './minecraft/launch';
 import { deleteVersion, installVanilla, listAvailableVersions, listInstalledVersions, repairVersion } from './minecraft/versions';
+import { updateDiscord } from './services/discord';
 import { getModuleStates, MODULES, setModuleEnabled, supportedVersions } from './services/zenthraMod';
 import { cancelPendingSignIn, getAuthState, refreshConfiguredFlag, signIn, signOut } from './services/auth';
 import {
@@ -75,6 +76,7 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
   handle('settings:update', async (patch) => {
     const s = await updateSettings(patch);
     if ('msClientId' in patch) await refreshConfiguredFlag();
+    if ('discordPresence' in patch) void updateDiscord(getGameState()).catch(() => undefined);
     return s;
   });
   handle('settings:reset', resetSettings);

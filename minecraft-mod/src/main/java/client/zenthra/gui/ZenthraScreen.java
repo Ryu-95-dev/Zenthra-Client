@@ -57,7 +57,7 @@ public class ZenthraScreen extends BaseScreen {
 			{"session_timer", "TIMER"}, {"scoreboard", "SCOREBOARD"}, {"status_indicators", "STATUS"}, {"main_menu", "MAIN_MENU"},
 			{"inventory_hud", "INVENTORY"}, {"totem_counter", "TOTEM"}, {"ping_display", "PING"}, {"day_counter", "DAY"},
 			{"clock", "CLOCK"}, {"speed_display", "SPEED"}, {"memory_display", "MEMORY"}, {"durability_alert", "DURABILITY"},
-			{"nether_coords", "NETHER"}, {"break_reminder", "BREAK"},
+			{"nether_coords", "NETHER"}, {"break_reminder", "BREAK"}, {"optimization", "OPTIMIZE"}, {"motion_blur", "BLUR"},
 		};
 		for (String[] p : pairs) MODULE_ICONS.put(p[0], ZIcon.valueOf(p[1]));
 	}

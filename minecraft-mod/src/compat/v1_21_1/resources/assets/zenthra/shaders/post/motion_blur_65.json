@@ -1,0 +1,14 @@
+{
+    "targets": [ "swap", "previous" ],
+    "passes": [
+        {
+            "name": "zenthra_motion_blur",
+            "intarget": "minecraft:main",
+            "outtarget": "swap",
+            "auxtargets": [ { "name": "PrevSampler", "id": "previous" } ],
+            "uniforms": [ { "name": "BlendFactor", "values": [ 0.65 ] } ]
+        },
+        { "name": "blit", "intarget": "swap", "outtarget": "previous" },
+        { "name": "blit", "intarget": "swap", "outtarget": "minecraft:main" }
+    ]
+}

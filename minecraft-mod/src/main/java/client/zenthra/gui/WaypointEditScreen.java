@@ -10,12 +10,13 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-/** Creates or edits a waypoint: name, colour and coordinates. */
+/** Creates or edits a waypoint: name, colour, marker icon and coordinates. */
 public class WaypointEditScreen extends BaseScreen {
 	private final Waypoint waypoint;
 	private final boolean isNew;
 	private EditBox name, x, y, z;
 	private int color;
+	private String icon;
 	private String error;
 
 	public WaypointEditScreen(Screen parent, Waypoint waypoint, boolean isNew) {
@@ -23,11 +24,12 @@ public class WaypointEditScreen extends BaseScreen {
 		this.waypoint = waypoint;
 		this.isNew = isNew;
 		this.color = waypoint.color;
+		this.icon = waypoint.icon;
 	}
 
 	@Override
 	protected void init() {
-		layoutPanel(300, 170);
+		layoutPanel(320, 214);
 		int lx = px + 12, fw = pw - 24;
 		name = editBox(lx, py + 34, fw, 16, "Nom");
 		name.setMaxLength(32);
@@ -67,6 +69,7 @@ public class WaypointEditScreen extends BaseScreen {
 		}
 		waypoint.name = n;
 		waypoint.color = color;
+		waypoint.icon = icon;
 		if (isNew) ZenthraClient.modules().get(WaypointsModule.class).add(waypoint);
 		else ZenthraClient.config().markDirty();
 		onClose();
@@ -87,6 +90,33 @@ public class WaypointEditScreen extends BaseScreen {
 			region(sx, py + 111, 13, 14, () -> color = col);
 			sx += 16;
 		}
+		// Marker: first letter, or one of the icons.
+		g.text("Icône", lx, py + 132, MUTED, false);
+		int ix = lx, iy = py + 143;
+		for (int i = -1; i < WaypointsModule.ICONS.size(); i++) {
+			String id = i < 0 ? null : WaypointsModule.ICONS.get(i);
+			boolean selected = java.util.Objects.equals(id, icon);
+			if (ix + 14 > px + pw - 70) {
+				ix = lx;
+				iy += 17;
+			}
+			Ui.round(g, ix, iy, 14, 14, selected ? 0xFF6A40B8 : 0x60201433);
+			if (selected) Ui.roundOutline(g, ix - 1, iy - 1, 16, 16, 0xFFFFFFFF);
+			if (id == null) {
+				String letter = name.getValue().isEmpty() ? "A" : name.getValue().substring(0, 1).toUpperCase(java.util.Locale.ROOT);
+				g.text(letter, ix + 7 - font.width(letter) / 2, iy + 3, 0xFFFFFFFF, true);
+			} else {
+				Ui.icon(g, ZIcon.valueOf("WP_" + id.toUpperCase(java.util.Locale.ROOT)), ix + 2, iy + 2, 10, true);
+			}
+			region(ix, iy, 14, 14, () -> icon = id);
+			ix += 17;
+		}
+		// Live preview of the marker.
+		WaypointsModule.Waypoint preview = new WaypointsModule.Waypoint(name.getValue().isEmpty() ? "Repère" : name.getValue(), 0, 0, 0, "", color);
+		preview.icon = icon;
+		int cx = px + pw - 36, cy = py + 160;
+		Ui.round(g, cx - 32, cy - 26, 64, 46, 0xFF2A3A2A);
+		WaypointsModule.drawMarker(g, preview, cx, cy - 2, 1f, "12 m");
 		if (error != null) g.text(error, lx, py + ph - 20, 0xFFF87171, false);
 	}
 }

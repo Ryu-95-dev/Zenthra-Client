@@ -272,6 +272,13 @@ export function SettingsPage() {
         </div>
         <div className="setting-row">
           <div className="grow">
+            <div>Statut Discord</div>
+            <div className="muted small">Affiche « Joue à Zenthra Client » et la version de Minecraft sur ton profil Discord (via l'application Discord de ce PC).</div>
+          </div>
+          <Toggle label="Statut Discord" checked={s.discordPresence} onChange={(v) => updateSettings({ discordPresence: v })} />
+        </div>
+        <div className="setting-row">
+          <div className="grow">
             <div>Serveur de présence</div>
             <div className="muted small">Adresse HTTPS d'un serveur compatible (voir docs/COMMUNITY.md). Vide = fonctionnalité désactivée.</div>
           </div>

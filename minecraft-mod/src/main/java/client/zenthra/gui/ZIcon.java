@@ -48,8 +48,26 @@ public enum ZIcon {
 	SETTINGS,
 	USERS,
 	KEY,
-	SAVE;
+	SAVE,
+	WP_HOUSE,
+	WP_SWORDS,
+	WP_CHEST,
+	WP_STAR,
+	WP_SKULL,
+	WP_FLAG,
+	WP_MOUNTAIN,
+	WP_GEM,
+	WP_PICKAXE,
+	WP_TREE,
+	WP_PORTAL,
+	WP_HEART,
+	WP_BED,
+	WP_CASTLE,
+	WP_ANCHOR,
+	WP_TENT,
+	OPTIMIZE,
+	BLUR;
 
-	public static final int CELL = 32, COLUMNS = 8, ROWS = 6;
-	public static final int TEXTURE_WIDTH = 256, TEXTURE_HEIGHT = 384;
+	public static final int CELL = 32, COLUMNS = 8, ROWS = 8;
+	public static final int TEXTURE_WIDTH = 256, TEXTURE_HEIGHT = 512;
 }

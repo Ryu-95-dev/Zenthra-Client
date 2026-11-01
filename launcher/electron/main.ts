@@ -6,6 +6,7 @@ import { getGameState } from './minecraft/launch';
 import { publishPresence } from './services/community';
 import { recordLauncherStartup } from './services/diagnostics';
 import { getProfile } from './services/profiles';
+import { updateDiscord } from './services/discord';
 import { bus } from './services/events';
 import { migrateFromAmethyst } from './services/migration';
 import { getSettings } from './services/settings';
@@ -98,12 +99,17 @@ app.whenReady().then(async () => {
     // Bring the launcher back when the game stops.
     if ((g.status === 'idle' || g.status === 'crashed') && win && !win.isVisible()) win.show();
     if (g.status === 'running' || g.status === 'idle') void sharePresence();
+    void updateDiscord(g).catch(() => undefined);
   });
 
   // Presence for friends (community server). Does nothing at all when no server
   // is configured or nobody is signed in; otherwise a heartbeat every 90 s.
   void sharePresence();
   setInterval(() => void sharePresence(), 90_000);
+
+  // Discord status; retried every 30 s in case Discord starts after the launcher or a setting changed.
+  void updateDiscord(getGameState()).catch(() => undefined);
+  setInterval(() => void updateDiscord(getGameState()).catch(() => undefined), 30_000);
 
   createWindow();
 });

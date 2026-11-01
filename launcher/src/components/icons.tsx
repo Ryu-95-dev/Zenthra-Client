@@ -6,9 +6,11 @@ import {
   Flame,
   HeartPulse,
   MemoryStick,
+  Rocket,
   Sun,
   TriangleAlert,
   Wifi,
+  Waves,
   Wind,
   Compass,
   Crosshair,
@@ -61,6 +63,8 @@ export const MODULE_ICONS: Record<string, LucideIcon> = {
   'triangle-alert': TriangleAlert,
   flame: Flame,
   coffee: Coffee,
+  rocket: Rocket,
+  waves: Waves,
 };
 
 export const PROFILE_ICONS: Record<ProfileIcon, LucideIcon> = {

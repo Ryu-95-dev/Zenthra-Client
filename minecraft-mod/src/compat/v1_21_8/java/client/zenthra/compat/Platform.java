@@ -216,6 +216,15 @@ public final class Platform {
 
 	// ---- Performance view (vanilla video options) ----
 
+	/** Particle option: 0 = all, 1 = decreased, 2 = minimal. */
+	public static int particlesLevel() {
+		return mc().options.particles().get().ordinal();
+	}
+
+	public static void setParticlesLevel(int level) {
+		mc().options.particles().set(ParticleStatus.values()[Math.max(0, Math.min(2, level))]);
+	}
+
 	private static int next(int[] steps, int current) {
 		for (int s : steps) if (s > current) return s;
 		return steps[0];
@@ -323,4 +332,23 @@ public final class Platform {
 		}
 		return false;
 	}
-}
+
+	// ---- Motion blur (post effect) ----
+
+	public static boolean motionBlurSupported() {
+		return true;
+	}
+
+	/** Keeps the Zenthra motion blur at this strength (0 = off), without replacing another post effect. */
+	public static void motionBlur(int level) {
+		var renderer = mc().gameRenderer;
+		var current = renderer.currentPostEffect();
+		boolean ours = current != null && current.getNamespace().equals("zenthra") && current.getPath().startsWith("motion_blur");
+		if (level <= 0) {
+			if (ours) renderer.clearPostEffect();
+			return;
+		}
+		String path = "motion_blur_" + level;
+		if ((ours && current.getPath().equals(path)) || (current != null && !ours)) return;
+		((client.zenthra.mixin.GameRendererAccessor) renderer).zenthra$setPostEffect(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("zenthra", path));
+	}}

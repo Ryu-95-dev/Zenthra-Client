@@ -3,11 +3,13 @@ package client.zenthra;
 import client.zenthra.compat.Platform;
 import client.zenthra.module.impl.CrosshairModule;
 import client.zenthra.module.impl.FreeLookModule;
+import client.zenthra.module.impl.HitColorModule;
 import client.zenthra.module.impl.PotionHudModule;
 import client.zenthra.module.impl.ScoreboardModule;
 import client.zenthra.module.impl.ZoomModule;
 import client.zenthra.util.CpsTracker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 
 /**
  * Version-independent entry points called by the mixins of each version
@@ -46,6 +48,28 @@ public final class Hooks {
 	public static float[] freeLookAngles() {
 		FreeLookModule freelook = ZenthraClient.modules().get(FreeLookModule.class);
 		return freelook.isActive() ? new float[] {freelook.yaw(), freelook.pitch()} : null;
+	}
+
+	private static int armorOverlay = -1;
+
+	/** Called when an entity's armor starts rendering: armor gets the same hurt tint as the body when Hit Color asks for it. */
+	public static void beginArmor(boolean hurt) {
+		HitColorModule hc = ZenthraClient.modules().get(HitColorModule.class);
+		armorOverlay = hurt && hc.isEnabled() && hc.tintsArmor() ? OverlayTexture.pack(OverlayTexture.u(0f), OverlayTexture.v(true)) : -1;
+	}
+
+	/** True while hurt armor must be drawn with the entity shader (the armor shader ignores the hurt tint). */
+	public static boolean tintArmor() {
+		return armorOverlay >= 0;
+	}
+
+	public static void endArmor() {
+		armorOverlay = -1;
+	}
+
+	/** Overlay used for armor pieces (vanilla always uses "no overlay", so armor never turned red). */
+	public static int armorOverlay(int vanilla) {
+		return armorOverlay >= 0 ? armorOverlay : vanilla;
 	}
 
 	public static boolean replaceCrosshair() {

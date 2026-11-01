@@ -22,6 +22,8 @@ import client.zenthra.module.impl.MemoryModule;
 import client.zenthra.module.impl.DurabilityAlertModule;
 import client.zenthra.module.impl.NetherCoordsModule;
 import client.zenthra.module.impl.BreakReminderModule;
+import client.zenthra.module.impl.MotionBlurModule;
+import client.zenthra.module.impl.OptimizationModule;
 import client.zenthra.module.impl.StatusIndicatorsModule;
 import client.zenthra.module.impl.ToggleSprintModule;
 import client.zenthra.module.impl.WaypointsModule;
@@ -55,7 +57,9 @@ public final class ModuleManager {
 		new MemoryModule(),
 		new DurabilityAlertModule(),
 		new NetherCoordsModule(),
-		new BreakReminderModule()
+		new BreakReminderModule(),
+		new OptimizationModule(),
+		new MotionBlurModule()
 	);
 
 	public List<Module> all() {

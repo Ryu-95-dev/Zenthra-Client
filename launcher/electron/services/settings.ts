@@ -26,6 +26,7 @@ export function defaultSettings(): Settings {
     afterLaunch: 'minimize',
     language: 'fr',
     showOnlineStatus: false,
+    discordPresence: true,
     presenceServerUrl: '',
     msClientId: process.env.ZENTHRA_MS_CLIENT_ID ?? '',
     selectedProfileId: 'pvp',
