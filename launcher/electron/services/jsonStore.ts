@@ -15,12 +15,28 @@ export async function readJson<T>(file: string, fallback: T): Promise<T> {
   }
 }
 
-/** Atomic write: write to a temp file then rename over the target. */
-export async function writeJson(file: string, data: unknown): Promise<void> {
-  await fsp.mkdir(path.dirname(file), { recursive: true });
-  const tmp = `${file}.${process.pid}.tmp`;
-  await fsp.writeFile(tmp, JSON.stringify(data, null, 2), 'utf8');
-  await fsp.rename(tmp, file);
+const queues = new Map<string, Promise<void>>();
+let tmpCounter = 0;
+
+/**
+ * Atomic write: write to a temp file then rename over the target. Writes to the
+ * same file run one after another (and each uses its own temp file), so rapid
+ * saves — e.g. dragging the colour picker — can never collide.
+ */
+export function writeJson(file: string, data: unknown): Promise<void> {
+  const text = JSON.stringify(data, null, 2);
+  const run = async () => {
+    await fsp.mkdir(path.dirname(file), { recursive: true });
+    const tmp = `${file}.${process.pid}.${++tmpCounter}.tmp`;
+    await fsp.writeFile(tmp, text, 'utf8');
+    await fsp.rename(tmp, file);
+  };
+  const next = (queues.get(file) ?? Promise.resolve()).catch(() => undefined).then(run);
+  queues.set(file, next);
+  void next.finally(() => {
+    if (queues.get(file) === next) queues.delete(file);
+  }).catch(() => undefined);
+  return next;
 }
 
 export function existsSync(p: string): boolean {

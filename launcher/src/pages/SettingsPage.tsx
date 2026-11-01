@@ -72,6 +72,26 @@ function UpdatesSection() {
 
 const ACCENTS =['#8b5cf6', '#a855f7', '#7c3aed', '#6366f1', '#d946ef', '#ec4899'];
 
+/**
+ * Custom accent colour: follows the picker live on screen, but saves only once the
+ * colour stops changing (dragging in the picker fires dozens of changes a second).
+ */
+function AccentPicker({ value, onCommit }: { value: string; onCommit: (c: string) => void }) {
+  const [local, setLocal] = useState(value);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => setLocal(value), [value]);
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
+  const change = (c: string) => {
+    setLocal(c);
+    document.documentElement.style.setProperty('--accent', c);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => onCommit(c), 300);
+  };
+  return <input type="color" value={local} onChange={(e) => change(e.target.value)} aria-label="Couleur personnalisée" />;
+}
+
 export function SettingsPage() {
   const { settings, updateSettings, auth, run, params, appInfo } = useApp();
   const [confirmReset, setConfirmReset] = useState(false);
@@ -165,7 +185,7 @@ export function SettingsPage() {
             {ACCENTS.map((c) => (
               <button key={c} className={`swatch${s.accentColor === c ? ' on' : ''}`} style={{ background: c }} onClick={() => updateSettings({ accentColor: c })} aria-label={c} />
             ))}
-            <input type="color" value={s.accentColor} onChange={(e) => updateSettings({ accentColor: e.target.value })} aria-label="Couleur personnalisée" />
+            <AccentPicker value={s.accentColor} onCommit={(c) => updateSettings({ accentColor: c })} />
           </div>
         </div>
         <div className="setting-row">
