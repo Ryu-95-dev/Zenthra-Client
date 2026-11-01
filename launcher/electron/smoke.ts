@@ -11,6 +11,7 @@ import { initAuth } from './services/auth';
 import { bus } from './services/events';
 import { migrateFromAmethyst } from './services/migration';
 import { setModuleEnabled } from './services/zenthraMod';
+import { executeInstall, IRIS_PROJECT, planInstall, search } from './services/modrinth';
 import { instanceDir, setDataDir } from './services/paths';
 import { createProfile, deleteProfile } from './services/profiles';
 import { getSettings, updateSettings } from './services/settings';
@@ -22,6 +23,7 @@ const pages: [string, string][] = [
   ['modules', 'Modules'],
   ['mods', 'Mods'],
   ['resourcepacks', 'Resource Packs'],
+  ['shaders', 'Shaders'],
   ['diagnostics', 'Diagnostic'],
   ['modrinth', 'Modrinth'],
   ['versions', 'Versions'],
@@ -193,7 +195,16 @@ app.whenReady().then(async () => {
       zenthraMod: true,
       jvmArgs: '-Dzenthra.selftest=true',
     });
-    // SMOKE_LANG=fr_fr|en_us: game language of the temporary profile.
+    // SMOKE_SHADER=1: install a real shader pack from Modrinth (Iris and Sodium must come with it).
+    if (process.env.SMOKE_SHADER) {
+      const hits = await search({ query: 'complementary', projectType: 'shader', gameVersion: temp.mcVersion, loader: null, sort: 'relevance', offset: 0 });
+      const shader = hits.hits[0];
+      const plan = await planInstall(temp.id, shader.project_id, null, 'shader');
+      console.log(`[smoke] shader : ${shader.title} · avertissements : ${plan.warnings.join(' | ') || 'aucun'} · conflits : ${plan.conflicts.length}`);
+      const after = await executeInstall(temp.id, plan, 'shader', shader.icon_url ?? null);
+      const shaderFiles = fs.existsSync(path.join(instanceDir(temp.id), 'shaderpacks')) ? fs.readdirSync(path.join(instanceDir(temp.id), 'shaderpacks')) : [];
+      console.log(`[smoke] shaderpacks/ : ${shaderFiles.join(', ')} · mods : ${after.mods.map((m) => m.title).join(', ')} · Iris : ${after.mods.some((m) => m.projectId === IRIS_PROJECT)}`);
+    }    // SMOKE_LANG=fr_fr|en_us: game language of the temporary profile.
     if (process.env.SMOKE_LANG && /^[a-z]{2}_[a-z]{2}$/.test(process.env.SMOKE_LANG)) {
       fs.mkdirSync(instanceDir(temp.id), { recursive: true });
       fs.writeFileSync(path.join(instanceDir(temp.id), 'options.txt'), `lang:${process.env.SMOKE_LANG}\n`);

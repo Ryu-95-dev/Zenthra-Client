@@ -19,6 +19,7 @@ const PAGES: Record<PageId, ComponentType> = {
   modules: page(() => import('./pages/ModsPage'), 'ModulesPage'),
   mods: page(() => import('./pages/ModsPage'), 'ModsPage'),
   resourcepacks: page(() => import('./pages/ResourcePacksPage'), 'ResourcePacksPage'),
+  shaders: page(() => import('./pages/ShadersPage'), 'ShadersPage'),
   modrinth: page(() => import('./pages/ModrinthPage'), 'ModrinthPage'),
   versions: page(() => import('./pages/VersionsPage'), 'VersionsPage'),
   multiplayer: page(() => import('./pages/MultiplayerPage'), 'MultiplayerPage'),

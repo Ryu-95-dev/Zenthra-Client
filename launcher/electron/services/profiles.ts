@@ -31,6 +31,7 @@ function makeProfile(id: string, name: string, icon: ProfileIcon, loader: Loader
     resolution: null,
     mods: [],
     resourcePacks: [],
+    shaderPacks: [],
     createdAt: new Date().toISOString(),
     lastPlayed: null,
     builtin: true,
@@ -107,6 +108,7 @@ export async function createProfile(input: Pick<Profile, 'name' | 'mcVersion' | 
     builtin: false,
     mods: input.mods ?? [],
     resourcePacks: input.resourcePacks ?? [],
+    shaderPacks: input.shaderPacks ?? [],
     createdAt: new Date().toISOString(),
     lastPlayed: null,
   };
@@ -149,7 +151,7 @@ export async function duplicateProfile(id: string): Promise<Profile> {
   const from = instanceDir(src.id);
   if (fs.existsSync(from)) {
     // Copy configuration and content, but not worlds, logs or screenshots.
-    for (const sub of ['mods', 'resourcepacks', 'config', 'options.txt', 'servers.dat']) {
+    for (const sub of ['mods', 'resourcepacks', 'shaderpacks', 'config', 'options.txt', 'servers.dat']) {
       const s = path.join(from, sub);
       if (fs.existsSync(s)) await fsp.cp(s, path.join(instanceDir(copy.id), sub), { recursive: true });
     }
@@ -212,6 +214,7 @@ export async function importProfile(raw: string): Promise<Profile> {
     // Content entries are kept for reference; files are re-synchronised from Modrinth.
     mods: Array.isArray(p.mods) ? p.mods : [],
     resourcePacks: Array.isArray(p.resourcePacks) ? p.resourcePacks : [],
+    shaderPacks: Array.isArray(p.shaderPacks) ? p.shaderPacks : [],
   });
 }
 

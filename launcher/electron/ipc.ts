@@ -49,7 +49,7 @@ function handle(channel: string, fn: Handler): void {
   });
 }
 
-const PROJECT_TYPES: ModrinthProjectType[] = ['mod', 'resourcepack', 'modpack'];
+const PROJECT_TYPES: ModrinthProjectType[] = ['mod', 'resourcepack', 'shader', 'modpack'];
 function assertType(t: unknown): asserts t is ModrinthProjectType {
   if (!PROJECT_TYPES.includes(t as ModrinthProjectType)) throw new UserError('Type de contenu invalide.');
 }
@@ -265,8 +265,8 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
   handle('modrinth:addLocal', async (profileId: string, type: unknown): Promise<Profile | null> => {
     assertType(type);
     const res = await dialog.showOpenDialog(getWindow()!, {
-      title: type === 'resourcepack' ? 'Ajouter un resource pack' : 'Ajouter un mod',
-      filters: [type === 'resourcepack' ? { name: 'Resource pack', extensions: ['zip'] } : { name: 'Mod Fabric', extensions: ['jar'] }],
+      title: type === 'resourcepack' ? 'Ajouter un resource pack' : type === 'shader' ? 'Ajouter un shader' : 'Ajouter un mod',
+      filters: [type === 'resourcepack' ? { name: 'Resource pack', extensions: ['zip'] } : type === 'shader' ? { name: 'Shader', extensions: ['zip'] } : { name: 'Mod Fabric', extensions: ['jar'] }],
       properties: ['openFile'],
     });
     if (res.canceled || !res.filePaths[0]) return null;
@@ -285,7 +285,7 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
   });
   handle('modrinth:openWebsite', async (slug?: string, type?: ModrinthProjectType) => {
     const safeSlug = slug && /^[\w-]+$/.test(slug) ? slug : null;
-    const path = safeSlug ? `${type ?? 'mod'}/${safeSlug}` : type === 'resourcepack' ? 'resourcepacks' : type === 'modpack' ? 'modpacks' : 'mods';
+    const path = safeSlug ? `${type ?? 'mod'}/${safeSlug}` : type === 'resourcepack' ? 'resourcepacks' : type === 'shader' ? 'shaders' : type === 'modpack' ? 'modpacks' : 'mods';
     await shell.openExternal(`https://modrinth.com/${path}`);
   });
 

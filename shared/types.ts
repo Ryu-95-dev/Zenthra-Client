@@ -42,6 +42,8 @@ export interface Profile {
   resolution: { width: number; height: number } | null;
   mods: InstalledContent[];
   resourcePacks: InstalledContent[];
+  /** Shader packs (shaderpacks/), used through Iris. */
+  shaderPacks: InstalledContent[];
   createdAt: string;
   lastPlayed: string | null;
   builtin: boolean;
@@ -54,7 +56,7 @@ export interface ProfileHistoryEntry {
   at: string;
   /** Labels of the fields that were changed. */
   fields: string[];
-  before: Omit<Profile, 'mods' | 'resourcePacks' | 'iconImage'>;
+  before: Omit<Profile, 'mods' | 'resourcePacks' | 'shaderPacks' | 'iconImage'>;
 }
 
 export interface ProfileExport {
@@ -157,7 +159,7 @@ export interface LogLine {
 
 // ---- Modrinth ----
 
-export type ModrinthProjectType = 'mod' | 'resourcepack' | 'modpack';
+export type ModrinthProjectType = 'mod' | 'resourcepack' | 'shader' | 'modpack';
 
 export interface ModrinthSearchQuery {
   query: string;

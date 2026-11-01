@@ -105,6 +105,7 @@ export async function importMrpackFile(file: string): Promise<Profile> {
     let done = 0;
     const mods: InstalledContent[] = [];
     const packs: InstalledContent[] = [];
+    const shaders: InstalledContent[] = [];
     await pool(
       files,
       await downloadConcurrency(),
@@ -122,6 +123,7 @@ export async function importMrpackFile(file: string): Promise<Profile> {
       };
       if (f.path.startsWith('mods/')) mods.push(entry);
       else if (f.path.startsWith('resourcepacks/')) packs.push(entry);
+      else if (f.path.startsWith('shaderpacks/')) shaders.push(entry);
       task.update(++done / files.length, `${done}/${files.length} fichiers`);
       },
       task.signal,
@@ -138,7 +140,7 @@ export async function importMrpackFile(file: string): Promise<Profile> {
       }
     }
     if (!fs.existsSync(root)) await fsp.mkdir(root, { recursive: true });
-    const updated = await updateProfile(profile.id, { mods, resourcePacks: packs });
+    const updated = await updateProfile(profile.id, { mods, resourcePacks: packs, shaderPacks: shaders });
     task.done(`${index.name} importé (Minecraft ${mc}${loaderVersion ? `, ${LOADER_LABELS[loader]} ${loaderVersion}` : ''})`);
     return updated;
   } catch (err) {

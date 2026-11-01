@@ -1,4 +1,4 @@
-import { Activity, Boxes, ChevronRight, Compass, House, Image, Layers, Play, Puzzle, Server, Settings, SlidersHorizontal, type LucideIcon } from 'lucide-react';
+import { Activity, Boxes, ChevronRight, Compass, House, Image, Layers, Play, Puzzle, Server, Settings, SlidersHorizontal, type LucideIcon, Sparkles } from 'lucide-react';
 import { useApp, type PageId } from '../state/AppState';
 import { Logo } from './icons';
 import { PlayerHead } from './PlayerHead';
@@ -10,6 +10,7 @@ const NAV: { id: PageId; label: string; icon: LucideIcon }[] = [
   { id: 'modules', label: 'Modules', icon: SlidersHorizontal },
   { id: 'mods', label: 'Mods', icon: Puzzle },
   { id: 'resourcepacks', label: 'Resource Packs', icon: Image },
+  { id: 'shaders', label: 'Shaders', icon: Sparkles },
   { id: 'modrinth', label: 'Modrinth', icon: Compass },
   { id: 'versions', label: 'Versions', icon: Layers },
   { id: 'multiplayer', label: 'Multijoueur', icon: Server },

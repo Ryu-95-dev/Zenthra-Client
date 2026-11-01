@@ -6,16 +6,16 @@ import { api } from '../api';
 import { useApp } from '../state/AppState';
 import { ConfirmDialog } from './Modal';
 
-/** Installed mods or resource packs of the selected profile. */
-export function ContentList({ type }: { type: Extract<ModrinthProjectType, 'mod' | 'resourcepack'> }) {
+/** Installed mods, resource packs or shaders of the selected profile. */
+export function ContentList({ type }: { type: Extract<ModrinthProjectType, 'mod' | 'resourcepack' | 'shader'> }) {
   const { selectedProfile, run, navigate, notify } = useApp();
   const [local, setLocal] = useState<InstalledContent[]>([]);
   const [updates, setUpdates] = useState<UpdateInfo[] | null>(null);
   const [checking, setChecking] = useState(false);
   const [removing, setRemoving] = useState<InstalledContent | null>(null);
 
-  const tracked = selectedProfile ? (type === 'mod' ? selectedProfile.mods : selectedProfile.resourcePacks) : [];
-  const label = type === 'mod' ? 'mod' : 'resource pack';
+  const tracked = selectedProfile ? (type === 'mod' ? selectedProfile.mods : type === 'shader' ? (selectedProfile.shaderPacks ?? []) : selectedProfile.resourcePacks) : [];
+  const label = type === 'mod' ? 'mod' : type === 'shader' ? 'shader' : 'resource pack';
 
   const refreshLocal = useCallback(async () => {
     if (selectedProfile) setLocal(await api.modrinth.scanLocal(selectedProfile.id, type).catch(() => []));
@@ -52,7 +52,7 @@ export function ContentList({ type }: { type: Extract<ModrinthProjectType, 'mod'
       <header className="panel-header">
         <Package size={18} className="accent-icon" />
         <h3>
-          {type === 'mod' ? 'Mods installés' : 'Resource packs installés'} <span className="muted">({items.length})</span>
+          {type === 'mod' ? 'Mods installés' : type === 'shader' ? 'Shaders installés' : 'Resource packs installés'} <span className="muted">({items.length})</span>
         </h3>
         <div className="grow" />
         <button className="btn small ghost" onClick={checkUpdates} disabled={checking || !tracked.length}>
@@ -74,6 +74,8 @@ export function ContentList({ type }: { type: Extract<ModrinthProjectType, 'mod'
 
       {type === 'mod' && selectedProfile.loader === 'vanilla' ? (
         <p className="panel-note">Ce profil est Vanilla. Crée ou sélectionne un profil Fabric pour ajouter des mods.</p>
+      ) : type === 'shader' && !['fabric', 'neoforge', 'quilt'].includes(selectedProfile.loader) ? (
+        <p className="panel-note">Les shaders passent par Iris : crée ou sélectionne un profil Fabric (ou NeoForge).</p>
       ) : items.length === 0 ? (
         <p className="panel-note">Aucun {label} installé dans ce profil.</p>
       ) : (
@@ -106,7 +108,7 @@ export function ContentList({ type }: { type: Extract<ModrinthProjectType, 'mod'
 
       {removing && (
         <ConfirmDialog
-          title={`Désinstaller ${label === 'mod' ? 'le mod' : 'le resource pack'}`}
+          title={`Désinstaller ${label === 'mod' ? 'le mod' : label === 'shader' ? 'le shader' : 'le resource pack'}`}
           danger
           confirmLabel="Désinstaller"
           message={<>Retirer « {removing.title} » du profil {selectedProfile.name} ? Le fichier sera placé dans la corbeille.</>}

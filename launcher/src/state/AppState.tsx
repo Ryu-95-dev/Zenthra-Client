@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { AuthState, GameState, Profile, Settings, TaskProgress } from '@shared/types';
 import { api } from '../api';
 
-export type PageId = 'home' | 'play' | 'profiles' | 'modules' | 'mods' | 'diagnostics' | 'resourcepacks' | 'modrinth' | 'versions' | 'multiplayer' | 'settings';
+export type PageId = 'home' | 'play' | 'profiles' | 'modules' | 'mods' | 'diagnostics' | 'resourcepacks' | 'shaders' | 'modrinth' | 'versions' | 'multiplayer' | 'settings';
 
 export interface Toast {
   id: number;

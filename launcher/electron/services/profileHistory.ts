@@ -21,7 +21,7 @@ export const TRACKED_FIELDS: Partial<Record<keyof Profile, string>> = {
   resolution: 'résolution',
 };
 
-export type ProfileSettings = Omit<Profile, 'mods' | 'resourcePacks' | 'iconImage'>;
+export type ProfileSettings = Omit<Profile, 'mods' | 'resourcePacks' | 'shaderPacks' | 'iconImage'>;
 
 const file = (profileId: string) => path.join(configDir(), 'history', `${profileId.replace(/[^\w-]/g, '')}.json`);
 
@@ -34,7 +34,7 @@ export function changedFields(before: Profile, after: Profile): string[] {
 export async function recordChange(before: Profile, after: Profile): Promise<void> {
   const fields = changedFields(before, after);
   if (!fields.length) return;
-  const { mods: _m, resourcePacks: _r, iconImage: _i, ...settings } = before;
+  const { mods: _m, resourcePacks: _r, shaderPacks: _s, iconImage: _i, ...settings } = before;
   const list = await readJson<ProfileHistoryEntry[]>(file(before.id), []);
   list.unshift({ at: new Date().toISOString(), fields, before: settings });
   await writeJson(file(before.id), list.slice(0, MAX_ENTRIES));

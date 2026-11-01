@@ -62,6 +62,7 @@ export function HomePage() {
         .flatMap((p) => [
           ...p.mods.map((m) => ({ ...m, kind: 'Mod', profile: p.name })),
           ...p.resourcePacks.map((r) => ({ ...r, kind: 'Resource pack', profile: p.name })),
+      ...(p.shaderPacks ?? []).map((s) => ({ ...s, kind: 'Shader', profile: p.name })),
         ])
         .filter((c) => c.installedAt)
         .sort((a, b) => Date.parse(b.installedAt) - Date.parse(a.installedAt))

@@ -62,7 +62,8 @@ export function getVersion(versionId: string): Promise<ModrinthVersion> {
 export async function search(q: ModrinthSearchQuery): Promise<ModrinthSearchResult> {
   const facets: string[][] = [[`project_type:${q.projectType}`]];
   if (q.gameVersion) facets.push([`versions:${q.gameVersion}`]);
-  if (q.loader && q.projectType !== 'resourcepack') facets.push([`categories:${q.loader}`]);
+  if (q.projectType === 'shader') facets.push(['categories:iris']);
+  else if (q.loader && q.projectType !== 'resourcepack') facets.push([`categories:${q.loader}`]);
   const params = new URLSearchParams({
     query: q.query,
     facets: JSON.stringify(facets),
@@ -92,7 +93,21 @@ export async function getVersions(projectId: string, loader: string | null, game
 /** Loader facet to use when querying versions for a given profile & content type. */
 function loaderFor(profile: Profile, type: ModrinthProjectType): string | null {
   if (type === 'resourcepack') return 'minecraft';
+  if (type === 'shader') return 'iris';
   return profile.loader === 'vanilla' ? null : profile.loader;
+}
+
+/** Iris, the Fabric/NeoForge mod that loads shader packs (Modrinth project id). */
+export const IRIS_PROJECT = 'YL57xq9U';
+const IRIS_LOADERS = ['fabric', 'neoforge', 'quilt'];
+
+type ContentKey = 'mods' | 'resourcePacks' | 'shaderPacks';
+
+/** Where each kind of content lives: profile list, folder and file extension. */
+function kindOf(type: ModrinthProjectType): { key: ContentKey; dir: string; ext: RegExp } {
+  if (type === 'resourcepack') return { key: 'resourcePacks', dir: 'resourcepacks', ext: /\.zip$/i };
+  if (type === 'shader') return { key: 'shaderPacks', dir: 'shaderpacks', ext: /\.zip$/i };
+  return { key: 'mods', dir: 'mods', ext: /\.jar$/i };
 }
 
 function bestVersion(versions: ModrinthVersion[]): ModrinthVersion | undefined {
@@ -111,7 +126,10 @@ export async function planInstall(profileId: string, projectId: string, versionI
   if (type === 'mod' && profile.loader === 'vanilla') {
     throw new UserError('Ce profil est Vanilla : choisis un profil Fabric pour installer des mods.');
   }
-  const installed = type === 'mod' ? profile.mods : profile.resourcePacks;
+  if (type === 'shader' && !IRIS_LOADERS.includes(profile.loader)) {
+    throw new UserError('Les shaders passent par Iris : choisis un profil Fabric (ou NeoForge) pour en installer.');
+  }
+  const installed = profile[kindOf(type).key];
   const installedIds = new Set(installed.map((m) => m.projectId).filter(Boolean) as string[]);
   const plan: InstallPlan = { toInstall: [], alreadyInstalled: [], conflicts: [], warnings: [] };
   const visited = new Set<string>();
@@ -125,6 +143,8 @@ export async function planInstall(profileId: string, projectId: string, versionI
       version = await getVersion(vid);
     } else {
       version = bestVersion(await getVersions(pid, loaderFor(profile, type), profile.mcVersion));
+      // Shader packs rarely list every Minecraft version they work with.
+      if (!version && type === 'shader') version = bestVersion(await getVersions(pid, 'iris', null));
     }
     const title = titles.get(pid) ?? (await getProject(pid)).title;
     titles.set(pid, title);
@@ -157,6 +177,9 @@ export async function planInstall(profileId: string, projectId: string, versionI
   };
 
   await resolve(projectId, versionId, 0);
+  if (type === 'shader' && !profile.mods.some((m) => m.projectId === IRIS_PROJECT)) {
+    plan.warnings.push('Iris (et Sodium) seront aussi installés : ils sont nécessaires pour utiliser les shaders.');
+  }
 
   // Installed mods that declare the new ones incompatible.
   const newIds = new Set(plan.toInstall.map((t) => t.version.project_id));
@@ -176,8 +199,7 @@ export async function planInstall(profileId: string, projectId: string, versionI
   return plan;
 }
 
-const contentDir = (profileId: string, type: ModrinthProjectType) =>
-  path.join(instanceDir(profileId), type === 'resourcepack' ? 'resourcepacks' : 'mods');
+const contentDir = (profileId: string, type: ModrinthProjectType) => path.join(instanceDir(profileId), kindOf(type).dir);
 
 /** Executes an install plan: downloads and verifies every file from the Modrinth CDN. */
 export async function executeInstall(profileId: string, plan: InstallPlan, type: ModrinthProjectType, iconUrl: string | null): Promise<Profile> {
@@ -185,7 +207,7 @@ export async function executeInstall(profileId: string, plan: InstallPlan, type:
   const task = new Task(`Installation : ${plan.toInstall[0]?.title ?? 'contenu'}`, true);
   try {
     const profile = await getProfile(profileId);
-    const list = [...(type === 'resourcepack' ? profile.resourcePacks : profile.mods)];
+    const list = [...profile[kindOf(type).key]];
     const dir = contentDir(profileId, type);
     // The plan comes from the interface: check compatibility again before downloading anything.
     for (const { title, version } of plan.toInstall) {
@@ -225,8 +247,13 @@ export async function executeInstall(profileId: string, plan: InstallPlan, type:
       });
       i++;
     }
-    const updated = await updateProfile(profileId, type === 'resourcepack' ? { resourcePacks: list } : { mods: list });
+    let updated = await updateProfile(profileId, { [kindOf(type).key]: list });
     task.done(`${plan.toInstall.length} fichier(s) installé(s)`);
+    // A shader pack needs Iris (which brings Sodium) in the same profile.
+    if (type === 'shader' && !updated.mods.some((m) => m.projectId === IRIS_PROJECT)) {
+      const irisPlan = await planInstall(profileId, IRIS_PROJECT, null, 'mod');
+      if (!irisPlan.conflicts.length) updated = await executeInstall(profileId, irisPlan, 'mod', null);
+    }
     return updated;
   } catch (err) {
     task.fail(err instanceof Error ? err.message : String(err));
@@ -241,7 +268,7 @@ async function removeFile(dir: string, fileName: string): Promise<void> {
 
 export async function uninstall(profileId: string, type: ModrinthProjectType, fileName: string): Promise<Profile> {
   const profile = await getProfile(profileId);
-  const key = type === 'resourcepack' ? 'resourcePacks' : 'mods';
+  const key = kindOf(type).key;
   await removeFile(contentDir(profileId, type), fileName);
   return updateProfile(profileId, { [key]: profile[key].filter((c) => c.fileName !== fileName) });
 }
@@ -249,7 +276,7 @@ export async function uninstall(profileId: string, type: ModrinthProjectType, fi
 /** Checks tracked Modrinth content for newer compatible versions. */
 export async function checkUpdates(profileId: string, type: ModrinthProjectType): Promise<{ fileName: string; title: string; current: string | null; latest: ModrinthVersion }[]> {
   const profile = await getProfile(profileId);
-  const items = (type === 'resourcepack' ? profile.resourcePacks : profile.mods).filter((c) => c.projectId);
+  const items = profile[kindOf(type).key].filter((c) => c.projectId);
   const out: { fileName: string; title: string; current: string | null; latest: ModrinthVersion }[] = [];
   for (const c of items) {
     const latest = bestVersion(await getVersions(c.projectId!, loaderFor(profile, type), profile.mcVersion));
@@ -263,7 +290,7 @@ export async function scanLocal(profileId: string, type: ModrinthProjectType): P
   const profile = await getProfile(profileId);
   const dir = contentDir(profileId, type);
   if (!fs.existsSync(dir)) return [];
-  const tracked = new Set((type === 'resourcepack' ? profile.resourcePacks : profile.mods).map((c) => c.fileName));
+  const tracked = new Set(profile[kindOf(type).key].map((c) => c.fileName));
   const files = await fsp.readdir(dir);
   return files
     .filter((f) => !tracked.has(f) && /\.(jar|zip)$/i.test(f) && f !== 'zenthra-client.jar')
@@ -273,8 +300,9 @@ export async function scanLocal(profileId: string, type: ModrinthProjectType): P
 /** Copies a local .jar / .zip chosen by the user into the profile. */
 export async function addLocalFile(profileId: string, type: ModrinthProjectType, source: string): Promise<Profile> {
   const name = path.basename(source);
-  const ext = type === 'resourcepack' ? /\.zip$/i : /\.jar$/i;
-  if (!ext.test(name)) throw new UserError(type === 'resourcepack' ? 'Un resource pack doit être un fichier .zip.' : 'Un mod doit être un fichier .jar.');
+  if (!kindOf(type).ext.test(name)) {
+    throw new UserError(type === 'mod' ? 'Un mod doit être un fichier .jar.' : type === 'shader' ? 'Un shader doit être un fichier .zip.' : 'Un resource pack doit être un fichier .zip.');
+  }
   const dir = contentDir(profileId, type);
   await fsp.mkdir(dir, { recursive: true });
   const dest = safeJoin(dir, name);
@@ -282,7 +310,8 @@ export async function addLocalFile(profileId: string, type: ModrinthProjectType,
   await fsp.copyFile(source, dest);
   const profile = await getProfile(profileId);
   const entry: InstalledContent = { projectId: null, versionId: null, title: name.replace(/\.(jar|zip)$/i, ''), fileName: name, installedAt: new Date().toISOString() };
-  return updateProfile(profileId, type === 'resourcepack' ? { resourcePacks: [...profile.resourcePacks, entry] } : { mods: [...profile.mods, entry] });
+  const key = kindOf(type).key;
+  return updateProfile(profileId, { [key]: [...profile[key], entry] });
 }
 
 /**
@@ -296,6 +325,7 @@ export async function syncProfile(profileId: string): Promise<{ restored: number
   const all: [ModrinthProjectType, InstalledContent][] = [
     ...profile.mods.map((m) => ['mod', m] as [ModrinthProjectType, InstalledContent]),
     ...profile.resourcePacks.map((r) => ['resourcepack', r] as [ModrinthProjectType, InstalledContent]),
+    ...profile.shaderPacks.map((s) => ['shader', s] as [ModrinthProjectType, InstalledContent]),
   ];
   for (const [type, c] of all) {
     const dest = safeJoin(contentDir(profileId, type), c.fileName);

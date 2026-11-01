@@ -9,6 +9,7 @@ import { useApp } from '../state/AppState';
 const TYPES: { id: ModrinthProjectType; label: string }[] = [
   { id: 'mod', label: 'Mods' },
   { id: 'resourcepack', label: 'Resource Packs' },
+  { id: 'shader', label: 'Shaders' },
   { id: 'modpack', label: 'Modpacks' },
 ];
 
@@ -160,7 +161,7 @@ function ProjectModal({ hit, type, onClose }: { hit: ModrinthHit; type: Modrinth
   const profile = selectedProfile!;
 
   useEffect(() => {
-    const loader = type === 'resourcepack' ? 'minecraft' : type === 'modpack' ? null : profile.loader === 'vanilla' ? null : profile.loader;
+    const loader = type === 'resourcepack' ? 'minecraft' : type === 'shader' ? 'iris' : type === 'modpack' ? null : profile.loader === 'vanilla' ? null : profile.loader;
     const gv = type === 'modpack' ? null : profile.mcVersion;
     void api.modrinth
       .versions(hit.project_id, loader, gv)
@@ -197,7 +198,7 @@ function ProjectModal({ hit, type, onClose }: { hit: ModrinthHit; type: Modrinth
     if (ok) onClose();
   };
 
-  const installed = (type === 'resourcepack' ? profile.resourcePacks : profile.mods).find((m) => m.projectId === hit.project_id);
+  const installed = (type === 'resourcepack' ? profile.resourcePacks : type === 'shader' ? (profile.shaderPacks ?? []) : profile.mods).find((m) => m.projectId === hit.project_id);
 
   return (
     <Modal title={hit.title} onClose={onClose} width={640}>
