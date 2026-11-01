@@ -7,6 +7,7 @@ import {
   HeartPulse,
   MemoryStick,
   Rocket,
+  Scan,
   Sun,
   TriangleAlert,
   Wifi,
@@ -65,6 +66,7 @@ export const MODULE_ICONS: Record<string, LucideIcon> = {
   coffee: Coffee,
   rocket: Rocket,
   waves: Waves,
+  scan: Scan,
 };
 
 export const PROFILE_ICONS: Record<ProfileIcon, LucideIcon> = {

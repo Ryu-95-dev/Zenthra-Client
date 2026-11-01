@@ -351,4 +351,15 @@ public final class Platform {
 		String path = "motion_blur_" + level;
 		if ((ours && current.getPath().equals(path)) || (current != null && !ours)) return;
 		((client.zenthra.mixin.GameRendererAccessor) renderer).zenthra$setPostEffect(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("zenthra", path));
-	}}
+	}
+
+	// ---- Hitboxes (F3+B) ----
+
+	public static boolean hitboxesShown() {
+		return mc().getEntityRenderDispatcher().shouldRenderHitBoxes();
+	}
+
+	public static void setHitboxesShown(boolean shown) {
+		mc().getEntityRenderDispatcher().setRenderHitBoxes(shown);
+	}
+}

@@ -87,8 +87,9 @@ public final class Platform {
 		return mc().getOverlay() != null;
 	}
 
+	/** Whether the F3 screen itself is open (always-on entries such as hitboxes do not count). */
 	public static boolean debugScreenShown() {
-		return mc().getDebugOverlay().showDebugScreen();
+		return mc().debugEntries.isF3Visible();
 	}
 
 	public static String mcVersion() {
@@ -363,4 +364,16 @@ public final class Platform {
 		String path = "motion_blur_" + level;
 		if ((ours && current.getPath().equals(path)) || (current != null && !ours)) return;
 		((client.zenthra.mixin.GameRendererAccessor) renderer).zenthra$setPostEffect(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("zenthra", path));
-	}}
+	}
+
+	// ---- Hitboxes (F3+B, a debug screen entry since 1.21.9) ----
+
+	public static boolean hitboxesShown() {
+		return mc().debugEntries.isCurrentlyEnabled(net.minecraft.client.gui.components.debug.DebugScreenEntries.ENTITY_HITBOXES);
+	}
+
+	public static void setHitboxesShown(boolean shown) {
+		mc().debugEntries.setStatus(net.minecraft.client.gui.components.debug.DebugScreenEntries.ENTITY_HITBOXES,
+			shown ? net.minecraft.client.gui.components.debug.DebugScreenEntryStatus.ALWAYS_ON : net.minecraft.client.gui.components.debug.DebugScreenEntryStatus.NEVER);
+	}
+}

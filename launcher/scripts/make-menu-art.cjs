@@ -245,7 +245,7 @@ const ICONS = [
   ['WP_PICKAXE', 'Pickaxe'], ['WP_TREE', 'TreePine'], ['WP_PORTAL', 'CircleDot'], ['WP_HEART', 'Heart'],
   ['WP_BED', 'BedDouble'], ['WP_CASTLE', 'Castle'], ['WP_ANCHOR', 'Anchor'], ['WP_TENT', 'Tent'],
   // Optimisation, motion blur
-  ['OPTIMIZE', 'Rocket'], ['BLUR', 'Waves'],
+  ['OPTIMIZE', 'Rocket'], ['BLUR', 'Waves'], ['HITBOX', 'Scan'],
 ];
 
 function iconSvgs(color) {

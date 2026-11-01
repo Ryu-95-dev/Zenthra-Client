@@ -7,6 +7,7 @@ import client.zenthra.module.impl.DirectionHudModule;
 import client.zenthra.module.impl.FpsCounterModule;
 import client.zenthra.module.impl.FreeLookModule;
 import client.zenthra.module.impl.HitColorModule;
+import client.zenthra.module.impl.HitboxModule;
 import client.zenthra.module.impl.KeystrokesModule;
 import client.zenthra.module.impl.PotionHudModule;
 import client.zenthra.module.impl.ScoreboardModule;
@@ -59,7 +60,8 @@ public final class ModuleManager {
 		new NetherCoordsModule(),
 		new BreakReminderModule(),
 		new OptimizationModule(),
-		new MotionBlurModule()
+		new MotionBlurModule(),
+		new HitboxModule()
 	);
 
 	public List<Module> all() {

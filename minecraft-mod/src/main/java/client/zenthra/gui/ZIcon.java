@@ -66,7 +66,8 @@ public enum ZIcon {
 	WP_ANCHOR,
 	WP_TENT,
 	OPTIMIZE,
-	BLUR;
+	BLUR,
+	HITBOX;
 
 	public static final int CELL = 32, COLUMNS = 8, ROWS = 8;
 	public static final int TEXTURE_WIDTH = 256, TEXTURE_HEIGHT = 512;

@@ -153,7 +153,7 @@ public final class SelfTest {
 		// New HUD modules (inventory, totems, ping, day, clock, speed, memory, Nether coordinates, durability).
 		steps.add(new Step(5, null, () -> {
 			for (Module m : ZenthraClient.modules().all()) {
-				if (java.util.Set.of("inventory_hud", "totem_counter", "ping_display", "day_counter", "clock", "speed_display", "memory_display", "nether_coords", "durability_alert").contains(m.id())) m.setEnabled(true);
+				if (java.util.Set.of("inventory_hud", "totem_counter", "ping_display", "day_counter", "clock", "speed_display", "memory_display", "nether_coords", "durability_alert", "hitbox").contains(m.id())) m.setEnabled(true);
 			}
 		}));
 		steps.add(new Step(20, "16-new-modules", () -> log("nouveaux modules affichés")));

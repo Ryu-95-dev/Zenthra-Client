@@ -326,4 +326,15 @@ public final class Platform {
 		return false;
 	}
 
-	public static void motionBlur(int level) {}}
+	public static void motionBlur(int level) {}
+
+	// ---- Hitboxes (F3+B) ----
+
+	public static boolean hitboxesShown() {
+		return mc().getEntityRenderDispatcher().shouldRenderHitBoxes();
+	}
+
+	public static void setHitboxesShown(boolean shown) {
+		mc().getEntityRenderDispatcher().setRenderHitBoxes(shown);
+	}
+}

@@ -340,4 +340,15 @@ public final class Platform {
 		String path = "shaders/post/motion_blur_" + level + ".json";
 		if (("zenthra:" + path).equals(name) || (current != null && !ours)) return;
 		((client.zenthra.mixin.GameRendererAccessor) renderer).zenthra$loadEffect(new net.minecraft.resources.ResourceLocation("zenthra", path));
-	}}
+	}
+
+	// ---- Hitboxes (F3+B) ----
+
+	public static boolean hitboxesShown() {
+		return mc().getEntityRenderDispatcher().shouldRenderHitBoxes();
+	}
+
+	public static void setHitboxesShown(boolean shown) {
+		mc().getEntityRenderDispatcher().setRenderHitBoxes(shown);
+	}
+}
