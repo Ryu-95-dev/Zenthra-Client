@@ -148,11 +148,10 @@ describe('Microsoft sign-in (simulated, no real credentials)', () => {
     expect(state.status === 'error' && state.message).toMatch(/approuvé par Mojang/);
   });
 
-  it('refuses to sign in without an application id', async () => {
+  it("uses Zenthra's approved application id when none is entered", async () => {
     const auth = await import('../electron/services/auth');
-    await auth.initAuth();
-    const state = await auth.signIn();
-    expect(state.status).toBe('error');
-    expect(state.status === 'error' && state.configured).toBe(false);
+    const state = await auth.initAuth();
+    expect(auth.ZENTHRA_MS_CLIENT_ID).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(state.status === 'signed-out' && state.configured).toBe(true);
   });
 });
