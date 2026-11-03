@@ -145,7 +145,7 @@ export function SettingsPage() {
                 Annuler
               </button>
             ) : (
-              <button className="btn primary" disabled={!s.msClientId} onClick={() => run(() => api.auth.signIn())}>
+              <button className="btn primary" onClick={() => run(() => api.auth.signIn())}>
                 <LogIn size={15} /> Se connecter avec Microsoft
               </button>
             )}
