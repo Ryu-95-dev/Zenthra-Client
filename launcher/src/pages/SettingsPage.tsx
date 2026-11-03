@@ -163,7 +163,7 @@ export function SettingsPage() {
             className="mono"
             style={{ width: 300 }}
             value={clientId}
-            placeholder="00000000-0000-0000-0000-000000000000"
+            placeholder="Identifiant de Zenthra Client (par défaut)"
             spellCheck={false}
             onChange={(e) => setClientId(e.target.value)}
             onBlur={() => clientId !== s.msClientId && updateSettings({ msClientId: clientId })}

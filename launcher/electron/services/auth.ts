@@ -43,8 +43,14 @@ function toAccount(s: Session): Account {
   return { uuid: s.profile.uuid, name: s.profile.name, skinUrl: s.profile.skinUrl, expiresAt: new Date(s.mcExpiresAt).toISOString() };
 }
 
+/**
+ * Zenthra Client's own Azure application (public client, no secret), approved by
+ * Mojang for the Minecraft services API. Settings → Compte Microsoft can override it.
+ */
+export const ZENTHRA_MS_CLIENT_ID = '9669349f-519a-4b50-9ed3-5db166d47fe9';
+
 async function clientId(): Promise<string> {
-  return (await getSettings()).msClientId;
+  return (await getSettings()).msClientId || ZENTHRA_MS_CLIENT_ID;
 }
 
 export async function initAuth(): Promise<AuthState> {

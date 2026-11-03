@@ -19,7 +19,14 @@ Les jetons sont chiffrés avec **DPAPI** (Electron `safeStorage`) dans
 (filtrage dans `services/errors.ts`). La déconnexion supprime ce fichier.
 Pour révoquer l'accès côté Microsoft : https://account.live.com/consent/Manage
 
-## Ce qui doit être configuré (une seule fois, par le développeur)
+## Application de Zenthra Client
+
+L'application Azure de Zenthra Client (ID `9669349f-519a-4b50-9ed3-5db166d47fe9`, comptes
+Microsoft personnels, client public, redirection `http://localhost`) a été approuvée par
+Mojang en novembre 2026 ; elle est utilisée par défaut (`ZENTHRA_MS_CLIENT_ID` dans
+`launcher/electron/services/auth.ts`). Un autre ID peut être saisi dans Paramètres.
+
+## Ce qui doit être configuré (pour une autre application)
 
 La connexion **ne peut pas fonctionner sans identifiant d'application** :
 rien n'est simulé.

@@ -86,7 +86,7 @@ hit color, scoreboard, rechargement à chaud depuis le launcher).
 
 ## Compte, mises à jour, communauté
 - ✅ Connexion Microsoft PKCE complète, jetons chiffrés DPAPI (testée en simulation)
-- ⛔ ID d'application Azure approuvé par Mojang requis pour la vraie connexion (docs/MICROSOFT_AUTH.md)
+- ✅ Application Azure de Zenthra Client approuvée par Mojang (novembre 2026) et intégrée au launcher
 - ✅ Mises à jour : manifeste HTTPS + SHA-256, archive vérifiée, jamais d'écrasement en cours d'exécution
 - ⛔ Aucun manifeste publié pour l'instant (docs/UPDATES.md)
 - ✅ Serveur communautaire (amis, demandes, présence choisie, blocage, effacement) + client
