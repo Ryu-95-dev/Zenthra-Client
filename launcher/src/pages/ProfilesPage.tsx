@@ -1,6 +1,6 @@
 import { Copy, Download, FileUp, FolderOpen, History, ImagePlus, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { recommendMemory } from '@shared/performance';
+import { effectiveMemoryMb, recommendMemory } from '@shared/performance';
 import { LOADER_LABELS, type LoaderType, type Profile, type ProfileHistoryEntry, type ProfileIcon, type VersionSummary } from '@shared/types';
 import { api, timeAgo } from '../api';
 import { PROFILE_ICONS, ProfileAvatar, ProfileGlyph } from '../components/icons';
@@ -145,7 +145,9 @@ function HistoryModal({ profile, onClose }: { profile: Profile; onClose(): void 
 }
 
 function ProfileEditor({ profile, onClose }: { profile: Profile | null; onClose(): void }) {
-  const { run, settings, appInfo, selectProfile } = useApp();
+  const { run, settings, appInfo, selectProfile, notify } = useApp();
+  /** New Fabric profiles get the Pack Performance unless the player unticks it. */
+  const [performancePack, setPerformancePack] = useState(true);
   const [versions, setVersions] = useState<VersionSummary[]>([]);
   /** Versions of the selected loader for the selected Minecraft version (null while loading). */
   const [loaderVersions, setLoaderVersions] = useState<{ version: string; stable: boolean }[] | null>(null);
@@ -196,6 +198,16 @@ function ProfileEditor({ profile, onClose }: { profile: Profile | null; onClose(
     if (res) {
       if (!profile) selectProfile(res.id);
       onClose();
+      // Installed in the background: progress shows in the task tray.
+      if (!profile && res.loader === 'fabric' && performancePack) {
+        void api.optimizer
+          .installPack(res.id, { dynamicFps: false })
+          .then((r) => {
+            const skipped = r.skipped.length ? ` Non installés : ${r.skipped.map((s) => `${s.name} (${s.reason})`).join(' ; ')}` : '';
+            notify(r.skipped.length ? 'info' : 'success', `Pack Performance : ${r.installed.length} mod(s) installé(s).${skipped}`);
+          })
+          .catch((err: unknown) => notify('error', `Pack Performance non installé : ${err instanceof Error ? err.message : String(err)}`));
+      }
     }
   };
 
@@ -302,6 +314,12 @@ function ProfileEditor({ profile, onClose }: { profile: Profile | null; onClose(
           Inclure le mod Zenthra (menu Échap, modules PvP)
         </label>
         {!zenthraCompatible && <p className="muted small">Le mod Zenthra est disponible avec Fabric pour Minecraft {appInfo?.zenthraMcVersions.join(', ')}.</p>}
+        {!profile && form.loader === 'fabric' && (
+          <label className="check">
+            <input type="checkbox" checked={performancePack} onChange={(e) => setPerformancePack(e.target.checked)} />
+            Installer le Pack Performance (Sodium, Lithium, FerriteCore… versions compatibles uniquement)
+          </label>
+        )}
         <div className="field-row">
           <label className="field">
             <span>Mémoire (Mo)</span>
@@ -310,7 +328,11 @@ function ProfileEditor({ profile, onClose }: { profile: Profile | null; onClose(
               min={1024}
               max={32768}
               step={512}
-              placeholder={`Par défaut : ${settings?.memoryMb ?? 4096}`}
+              placeholder={
+                settings && appInfo
+                  ? `Par défaut : ${effectiveMemoryMb({ memoryMb: null, loader: form.loader, mods: profile?.mods ?? [] }, settings, appInfo.totalRamMb).memoryMb}${settings.autoMemory ? ' (auto)' : ''}`
+                  : 'Par défaut'
+              }
               value={form.memoryMb ?? ''}
               onChange={(e) => set('memoryMb', e.target.value ? Number(e.target.value) : null)}
             />

@@ -17,13 +17,15 @@ public class DurabilityAlertModule extends HudModule {
 	private static final String[] NAMES = {"Main", "Seconde main", "Casque", "Plastron", "Jambières", "Bottes"};
 	private final NumberSetting threshold = add(new NumberSetting("threshold", "Seuil d'alerte", 15, 5, 50, 1, " %"));
 
+	private final List<String> lines = new ArrayList<>();
+
 	public DurabilityAlertModule() {
 		super("durability_alert", "Durability Alert", "Alerte quand un objet porté va bientôt casser.", Category.PVP, false, 0.40, 0.30);
 	}
 
 	@Override
 	protected void renderElement(Gfx g, float partialTick, boolean editing) {
-		List<String> lines = new ArrayList<>();
+		lines.clear();
 		if (mc.player != null) {
 			for (int i = 0; i < SLOTS.length; i++) {
 				ItemStack s = mc.player.getItemBySlot(SLOTS[i]);

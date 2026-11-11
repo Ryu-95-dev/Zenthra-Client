@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { app } from 'electron';
 import type { DiagnosticsReport, GameTelemetry } from '../../../shared/types';
+import { effectiveMemoryMb } from '../../../shared/performance';
 import { getGameState, getRecentLogs, lastLaunch } from '../minecraft/launch';
 import { readJson } from './jsonStore';
 import { dataDir, instanceDir } from './paths';
@@ -120,7 +121,7 @@ export async function getDiagnostics(): Promise<DiagnosticsReport> {
             name: profile.name,
             mcVersion: profile.mcVersion,
             loader: profile.loader,
-            memoryMb: profile.memoryMb ?? settings.memoryMb,
+            memoryMb: effectiveMemoryMb(profile, settings, Math.round(os.totalmem() / 1048576)).memoryMb,
             mods: profile.mods.length,
           }
         : null,

@@ -7,9 +7,13 @@ import client.zenthra.module.setting.BooleanSetting;
 import client.zenthra.module.setting.ColorSetting;
 import client.zenthra.module.setting.NumberSetting;
 import client.zenthra.util.Draw;
+import client.zenthra.util.TextCache;
+
 /** Own latency to the server ("Local" in single player). */
 public class PingModule extends HudModule {
 	private final BooleanSetting background = add(new BooleanSetting("background", "Fond", true));
+
+	private final TextCache cache = new TextCache();
 
 	public PingModule() {
 		super("ping_display", "Ping", "Ta latence avec le serveur, en millisecondes.", Category.HUD, false, 0.13, 0.01);
@@ -24,7 +28,11 @@ public class PingModule extends HudModule {
 		} else {
 			var info = mc.getConnection().getPlayerInfo(mc.player.getUUID());
 			int ms = info == null ? -1 : info.getLatency();
-			text = ms < 0 ? "Ping : ?" : "Ping : " + ms + " ms";
+			if (ms < 0) text = "Ping : ?";
+			else {
+				if (cache.stale(ms, 0)) cache.set("Ping : " + ms + " ms");
+				text = cache.get();
+			}
 			color = ms < 0 ? 0xFFFFFFFF : ms < 80 ? 0xFF7FE0A8 : ms < 160 ? 0xFFFACC15 : 0xFFF87171;
 		}
 		int[] size = Draw.label(g, text, color, background.get(), true);

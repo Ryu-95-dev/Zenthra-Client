@@ -2,19 +2,22 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import type { GameState, LogLine } from '../../../shared/types';
+import { effectiveMemoryMb } from '../../../shared/performance';
 import { prepareZenthraMod, startFriendsBridge } from '../services/zenthraMod';
 import { getLaunchIdentity, type LaunchIdentity } from '../services/auth';
 import { redact, toMessage, UserError } from '../services/errors';
 import { cancelledError } from '../services/http';
 import { bus, launcherLog, Task } from '../services/events';
-import { assetsDir, instanceDir, librariesDir, logsDir, nativesDir } from '../services/paths';
+import { assetsDir, cacheDir, instanceDir, librariesDir, logsDir, nativesDir } from '../services/paths';
 import { getProfile, markPlayed } from '../services/profiles';
 import { getSettings } from '../services/settings';
 import { installFabric } from './fabric';
 import { installForgeLike } from './forge';
-import { ensureJavaRuntime } from './java';
+import { ensureJavaRuntime, javaMajorVersion } from './java';
+import { cdsPathUsable, supportsAutoCds, tunedJvmFlags } from './jvmFlags';
 import { mergeVersions, rulesAllow, type Argument, type Features, type VersionJson } from './versionJson';
 import { clientJarPath, installVanilla, libraryFile, readVersionJson, resolveLibraries } from './versions';
 
@@ -83,14 +86,28 @@ export async function launchProfile(profileId: string, opts: LaunchOptions = {})
     const gameDir = instanceDir(profile.id);
     await fsp.mkdir(gameDir, { recursive: true });
 
+    const memory = effectiveMemoryMb(profile, settings, Math.round(os.totalmem() / 1048576));
+    const javaMajor = (await javaMajorVersion(java)) ?? vanilla.javaVersion?.majorVersion ?? null;
+    // Class Data Sharing archive, one per launched version (its classpath) and Java version.
+    let cdsArchive: string | null = null;
+    if (supportsAutoCds(javaMajor)) {
+      const dir = path.join(cacheDir(), 'cds', versionId.replace(/[^\w.\-]/g, '_'));
+      const file = path.join(dir, `zenthra-java${javaMajor}.jsa`);
+      if (cdsPathUsable(file)) {
+        await fsp.mkdir(dir, { recursive: true });
+        cdsArchive = file;
+      }
+    }
     const args = buildArguments(json, vanilla.id, {
       providesGameJar: profile.loader === 'forge' || profile.loader === 'neoforge',
       identity,
       gameDir,
-      memoryMb: profile.memoryMb ?? settings.memoryMb,
+      memoryMb: memory.memoryMb,
       extraJvm: `${settings.jvmArgs} ${profile.jvmArgs}`,
       resolution: profile.resolution,
       server: opts.server,
+      javaMajor,
+      cdsArchive,
     });
 
     if (task.cancelled) throw cancelledError();
@@ -105,10 +122,19 @@ export async function launchProfile(profileId: string, opts: LaunchOptions = {})
       bus.emit('log', { ts: Date.now(), stream, text: safe });
     };
     log('launcher', `Lancement de ${profile.name} — Minecraft ${profile.mcVersion} (${profile.loader})${identity.demo ? ' — mode démo' : ''}`);
-    log('launcher', `Java : ${java}`);
+    log('launcher', `Java : ${java}${javaMajor ? ` (Java ${javaMajor})` : ''}`);
+    log('launcher', `Mémoire : ${memory.memoryMb} Mo (${memory.source === 'auto' ? 'automatique' : memory.source === 'profile' ? 'réglage du profil' : 'réglage du launcher'})`);
 
     child = spawn(java, args, { cwd: gameDir, windowsHide: false, env: { ...process.env, ZENTHRA_PROFILE: profile.id } });
     const pid = child.pid ?? 0;
+    // Give the game priority over background programs (never "high"/"realtime": Windows must stay responsive).
+    if (pid) {
+      try {
+        os.setPriority(pid, os.constants.priority.PRIORITY_ABOVE_NORMAL);
+      } catch (err) {
+        log('launcher', `Priorité du processus inchangée : ${(err as Error).message}`);
+      }
+    }
     const stopFriends = startFriendsBridge(profile);
     for (const [stream, src] of [['stdout', child.stdout], ['stderr', child.stderr]] as const) {
       let buf = '';
@@ -155,13 +181,17 @@ interface ArgContext {
   extraJvm: string;
   resolution: { width: number; height: number } | null;
   server?: string;
+  /** Major version of the Java runtime used, null when unknown. */
+  javaMajor?: number | null;
+  /** Class Data Sharing archive (Java 19+), null to skip. */
+  cdsArchive?: string | null;
 }
 
-function splitArgs(s: string): string[] {
+export function splitArgs(s: string): string[] {
   return (s.match(/"[^"]*"|\S+/g) ?? []).map((a) => a.replace(/^"|"$/g, ''));
 }
 
-function buildArguments(json: VersionJson, vanillaId: string, ctx: ArgContext): string[] {
+export function buildArguments(json: VersionJson, vanillaId: string, ctx: ArgContext): string[] {
   const classpath = resolveLibraries(json.libraries)
     .filter((l) => !l.native)
     .map((l) => libraryFile(l.path));
@@ -206,13 +236,16 @@ function buildArguments(json: VersionJson, vanillaId: string, ctx: ArgContext): 
       return (Array.isArray(a.value) ? a.value : [a.value]).map(sub);
     });
 
+  const userJvm = splitArgs(ctx.extraJvm);
   const jvm: string[] = [`-Xmx${ctx.memoryMb}M`, `-Xms${Math.min(1024, ctx.memoryMb)}M`, '-Dzenthra.launcher=true'];
+  jvm.push(...tunedJvmFlags({ javaMajor: ctx.javaMajor ?? null, userArgs: userJvm, cdsArchive: ctx.cdsArchive ?? null }));
   if (json.arguments?.jvm?.length) {
     jvm.push(...expand(json.arguments.jvm));
   } else {
     jvm.push(`-Djava.library.path=${vars.natives_directory}`, '-cp', vars.classpath);
   }
-  jvm.push(...splitArgs(ctx.extraJvm));
+  // The player's own arguments come last so they win.
+  jvm.push(...userJvm);
 
   const gameArgs = json.arguments?.game?.length ? expand(json.arguments.game) : splitArgs(json.minecraftArguments ?? '').map(sub);
   if (ctx.identity.demo && !gameArgs.includes('--demo')) gameArgs.push('--demo');

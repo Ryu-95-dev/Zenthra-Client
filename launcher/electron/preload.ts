@@ -85,6 +85,8 @@ const api: ZenthraApi = {
     analyze: c('optimizer:analyze'),
     applyGraphics: c('optimizer:applyGraphics'),
     restoreGraphics: c('optimizer:restoreGraphics'),
+    installPack: c('optimizer:installPack'),
+    performanceMode: c('optimizer:performanceMode'),
   },
   resourcePacks: {
     list: c('packs:list'),

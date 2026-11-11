@@ -13,13 +13,21 @@ public final class Draw {
 		return Minecraft.getInstance().font;
 	}
 
-	/** Draws a text label with optional dark background; returns its {width, height}. */
+	/** Reused result of {@link #label}: HUD rendering happens on the render thread only. */
+	private static final int[] LABEL_SIZE = new int[2];
+
+	/**
+	 * Draws a text label with optional dark background; returns its {width, height}.
+	 * The returned array is shared and overwritten by the next call: read it right away.
+	 */
 	public static int[] label(Gfx g, String text, int color, boolean background, boolean shadow) {
 		int w = font().width(text) + (background ? 8 : 0);
 		int h = background ? 14 : 9;
 		if (background) g.fill(0, 0, w, h, BG);
 		g.text(text, background ? 4 : 0, background ? 3 : 0, color, shadow);
-		return new int[] {w, h};
+		LABEL_SIZE[0] = w;
+		LABEL_SIZE[1] = h;
+		return LABEL_SIZE;
 	}
 
 	public static int withAlpha(int argb, int alpha) {

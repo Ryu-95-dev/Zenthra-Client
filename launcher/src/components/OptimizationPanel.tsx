@@ -1,7 +1,7 @@
-import { AlertTriangle, CheckCircle2, Cpu, Download, MemoryStick, MonitorCog, RefreshCw, RotateCcw, Wrench } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Cpu, Download, MemoryStick, MonitorCog, RefreshCw, Rocket, RotateCcw, Wrench } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { recommendMemory } from '@shared/performance';
-import type { InstallPlan, OptimizationReport } from '@shared/types';
+import { effectiveMemoryMb, recommendMemory } from '@shared/performance';
+import type { InstallPlan, OptimizationReport, PerformancePackResult } from '@shared/types';
 import { api } from '../api';
 import { useApp } from '../state/AppState';
 import { ConfirmDialog, Modal } from './Modal';
@@ -19,6 +19,8 @@ export function OptimizationPanel() {
   const [plans, setPlans] = useState<{ name: string; plan: InstallPlan }[] | null>(null);
   const [confirmGfx, setConfirmGfx] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [dynamicFps, setDynamicFps] = useState(false);
+  const [packResult, setPackResult] = useState<{ mode: boolean; result: PerformancePackResult } | null>(null);
 
   const analyze = useCallback(async () => {
     if (!selectedProfile) return;
@@ -39,13 +41,18 @@ export function OptimizationPanel() {
   const memory = useMemo(
     () =>
       selectedProfile && appInfo
-        ? recommendMemory(appInfo.totalRamMb, selectedProfile.loader, selectedProfile.mods.length, selectedProfile.memoryMb ?? settings?.memoryMb)
+        ? recommendMemory(
+            appInfo.totalRamMb,
+            selectedProfile.loader,
+            selectedProfile.mods.length,
+            settings ? effectiveMemoryMb(selectedProfile, settings, appInfo.totalRamMb).memoryMb : selectedProfile.memoryMb,
+          )
         : null,
-    [selectedProfile, appInfo, settings?.memoryMb],
+    [selectedProfile, appInfo, settings],
   );
 
   if (!selectedProfile || !settings) return null;
-  const currentMem = selectedProfile.memoryMb ?? settings.memoryMb;
+  const currentMem = effectiveMemoryMb(selectedProfile, settings, appInfo?.totalRamMb ?? 0).memoryMb;
   const gameOpen = (game.status === 'running' || game.status === 'preparing') && game.profileId === selectedProfile.id;
 
   // Compute every install plan first, so the player sees exactly what will be downloaded.
@@ -71,6 +78,20 @@ export function OptimizationPanel() {
     setBusy(false);
     setPlans(null);
     void analyze();
+  };
+
+  // One click: every compatible mod of the pack (and, for the Mode Performance, the Zenthra optimization module).
+  const runPack = async (mode: boolean) => {
+    setBusy(true);
+    setPackResult(null);
+    const opts = { dynamicFps };
+    const result = await run(() => (mode ? api.optimizer.performanceMode(selectedProfile.id, opts) : api.optimizer.installPack(selectedProfile.id, opts)));
+    setBusy(false);
+    if (result) {
+      setPackResult({ mode, result });
+      notify('success', mode ? 'Mode Performance appliqué.' : 'Pack Performance installé.');
+      void analyze();
+    }
   };
 
   return (
@@ -100,6 +121,52 @@ export function OptimizationPanel() {
         )}
         <p className="muted small panel-foot">Les recommandations ne garantissent aucun nombre de FPS : le résultat dépend du matériel, de la version et de la scène.</p>
       </section>
+
+      {selectedProfile.loader === 'fabric' && (
+        <section className="panel">
+          <header className="panel-header">
+            <Rocket size={18} className="accent-icon" />
+            <h3>Pack Performance</h3>
+          </header>
+          <p className="panel-note">
+            Installe en un clic les mods d’optimisation qui ont une version compatible avec Minecraft {selectedProfile.mcVersion} : Sodium, Lithium, FerriteCore,
+            ImmediatelyFast, Entity Culling, More Culling, BadOptimizations, Krypton, ScalableLux (1.21.1 et plus), ModernFix (jusqu’à 1.21.4). Les
+            dépendances et les incompatibilités sont vérifiées sur Modrinth ; ce qui ne peut pas être installé est indiqué.
+          </p>
+          <label className="check">
+            <input type="checkbox" checked={dynamicFps} onChange={(e) => setDynamicFps(e.target.checked)} />
+            Ajouter Dynamic FPS (réduit les FPS quand la fenêtre du jeu est en arrière-plan)
+          </label>
+          {gameOpen && <p className="notice">Ferme Minecraft pour installer des mods dans ce profil.</p>}
+          {packResult && (
+            <div className="plan">
+              {packResult.result.installed.length > 0 && <p>Installés : {packResult.result.installed.join(', ')}.</p>}
+              {packResult.result.alreadyInstalled.length > 0 && <p className="muted small">Déjà présents : {packResult.result.alreadyInstalled.join(', ')}.</p>}
+              {packResult.result.skipped.map((s) => (
+                <p key={s.name} className="notice">
+                  {s.name} non installé : {s.reason}
+                </p>
+              ))}
+              {packResult.mode && (
+                <p className={packResult.result.moduleEnabled ? 'muted small' : 'notice'}>
+                  {packResult.result.moduleEnabled
+                    ? 'Module Zenthra Optimisation activé (pris en compte au prochain lancement, ou en jeu dans les 2 secondes).'
+                    : `Module Zenthra Optimisation non activé : ${packResult.result.moduleNote ?? 'mod Zenthra indisponible.'}`}
+                </p>
+              )}
+            </div>
+          )}
+          <div className="modal-actions">
+            <button className="btn ghost" disabled={busy || gameOpen} onClick={() => runPack(false)}>
+              <Download size={14} /> Installer le pack
+            </button>
+            <button className="btn primary" disabled={busy || gameOpen} onClick={() => runPack(true)}>
+              <Rocket size={14} /> Mode Performance
+            </button>
+          </div>
+          <p className="muted small panel-foot">Mode Performance = Pack Performance + module « Zenthra Optimisation » du mod Zenthra. Aucun gain de FPS n’est garanti.</p>
+        </section>
+      )}
 
       {memory && (
         <section className="panel">
@@ -134,7 +201,7 @@ export function OptimizationPanel() {
           <div className="modal-actions">
             {selectedProfile.memoryMb !== null && (
               <button className="btn ghost" onClick={() => run(() => api.profiles.update(selectedProfile.id, { memoryMb: null }), 'Valeur par défaut du launcher rétablie.')}>
-                <RotateCcw size={14} /> Valeur par défaut du launcher
+                <RotateCcw size={14} /> {settings.autoMemory ? 'Mémoire automatique' : 'Valeur par défaut du launcher'}
               </button>
             )}
             <button

@@ -4,6 +4,8 @@ import type {
   CommunityOverview,
   DiagnosticsReport,
   OptimizationReport,
+  PerformancePackOptions,
+  PerformancePackResult,
   GameState,
   InstallPlan,
   InstalledContent,
@@ -149,6 +151,10 @@ export interface ZenthraApi {
     applyGraphics(profileId: string, keys: string[]): Promise<void>;
     /** Restores the options.txt saved before the last change. */
     restoreGraphics(profileId: string): Promise<boolean>;
+    /** Installs the compatible mods of the Pack Performance (dependencies and conflicts checked through Modrinth). */
+    installPack(profileId: string, opts: PerformancePackOptions): Promise<PerformancePackResult>;
+    /** Pack Performance + the Zenthra "optimization" module turned on. */
+    performanceMode(profileId: string, opts: PerformancePackOptions): Promise<PerformancePackResult>;
   };
   diagnostics: {
     get(): Promise<DiagnosticsReport>;

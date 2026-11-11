@@ -54,6 +54,22 @@ export function recommendMemory(totalRamMb: number, loader: LoaderType, modCount
   return { recommendedMb, ceilingMb: ceiling, reasons, warning };
 }
 
+/**
+ * Memory actually given to a profile: its own value when set; otherwise the
+ * recommendation above (automatic mode, the default) or the launcher-wide value.
+ */
+export function effectiveMemoryMb(
+  profile: { memoryMb: number | null; loader: LoaderType; mods: unknown[] },
+  settings: { memoryMb: number; autoMemory?: boolean },
+  totalRamMb: number,
+): { memoryMb: number; source: 'profile' | 'auto' | 'launcher' } {
+  if (profile.memoryMb) return { memoryMb: profile.memoryMb, source: 'profile' };
+  if (settings.autoMemory !== false && totalRamMb > 0) {
+    return { memoryMb: recommendMemory(totalRamMb, profile.loader, profile.mods.length).recommendedMb, source: 'auto' };
+  }
+  return { memoryMb: settings.memoryMb, source: 'launcher' };
+}
+
 export type HardwareTier = 'low' | 'medium' | 'high';
 
 export interface HardwareInfo {

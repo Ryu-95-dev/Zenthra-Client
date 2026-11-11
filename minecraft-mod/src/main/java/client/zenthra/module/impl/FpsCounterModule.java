@@ -5,6 +5,8 @@ import client.zenthra.module.HudModule;
 import client.zenthra.module.setting.BooleanSetting;
 import client.zenthra.module.setting.ColorSetting;
 import client.zenthra.util.Draw;
+import client.zenthra.util.TextCache;
+
 import client.zenthra.compat.Gfx;
 
 public class FpsCounterModule extends HudModule {
@@ -12,13 +14,17 @@ public class FpsCounterModule extends HudModule {
 	private final BooleanSetting background = add(new BooleanSetting("background", "Fond", true));
 	private final BooleanSetting shadow = add(new BooleanSetting("shadow", "Ombre du texte", true));
 
+	private final TextCache text = new TextCache();
+
 	public FpsCounterModule() {
 		super("fps_counter", "FPS Counter", "Images par seconde réelles du jeu.", Category.HUD, true, 0.005, 0.01);
 	}
 
 	@Override
 	protected void renderElement(Gfx g, float partialTick, boolean editing) {
-		int[] size = Draw.label(g, mc.getFps() + " FPS", color.get(), background.get(), shadow.get());
+		int fps = mc.getFps();
+		if (text.stale(fps, 0)) text.set(fps + " FPS");
+		int[] size = Draw.label(g, text.get(), color.get(), background.get(), shadow.get());
 		width = size[0];
 		height = size[1];
 	}

@@ -28,7 +28,7 @@ const PAGES: Record<PageId, ComponentType> = {
 };
 
 export function App() {
-  const { page: current, settings } = useApp();
+  const { page: current, settings, game } = useApp();
   const Page = PAGES[current];
 
   useEffect(() => {
@@ -44,7 +44,8 @@ export function App() {
 
   return (
     <div className="app">
-      {settings.sakuraBackground && <SakuraBackground animate={settings.animations} accent={settings.accentColor} />}
+      {/* Frozen while the game runs so the launcher uses no CPU/GPU for animations. */}
+      {settings.sakuraBackground && <SakuraBackground animate={settings.animations && game.status !== 'running'} accent={settings.accentColor} />}
       <Sidebar />
       <div className="main">
         <TitleBar />

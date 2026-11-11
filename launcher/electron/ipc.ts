@@ -23,7 +23,7 @@ import {
 } from './services/community';
 import { getDiagnostics } from './services/diagnostics';
 import { listHistory } from './services/profileHistory';
-import { analyzeProfile, applyGraphics, restoreGraphics } from './services/optimizer';
+import { analyzeProfile, applyGraphics, applyPerformanceMode, installPerformancePack, restoreGraphics } from './services/optimizer';
 import { checkForUpdate, downloadUpdate } from './services/updater';
 import { deletePack, listPacks, openPacksFolder, setEnabledPacks } from './services/resourcepacks';
 import { toMessage, UserError } from './services/errors';
@@ -50,6 +50,11 @@ function handle(channel: string, fn: Handler): void {
 }
 
 const PROJECT_TYPES: ModrinthProjectType[] = ['mod', 'resourcepack', 'shader', 'modpack'];
+/** Options sent by the interface for the Pack Performance. */
+function packOptions(o: unknown): { dynamicFps: boolean } {
+  return { dynamicFps: !!(o && typeof o === 'object' && (o as { dynamicFps?: unknown }).dynamicFps === true) };
+}
+
 function assertType(t: unknown): asserts t is ModrinthProjectType {
   if (!PROJECT_TYPES.includes(t as ModrinthProjectType)) throw new UserError('Type de contenu invalide.');
 }
@@ -182,6 +187,8 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
     return applyGraphics(profileId, keys as string[]);
   });
   handle('optimizer:restoreGraphics', (profileId: string) => restoreGraphics(profileId));
+  handle('optimizer:installPack', (profileId: string, opts: unknown) => installPerformancePack(profileId, packOptions(opts)));
+  handle('optimizer:performanceMode', (profileId: string, opts: unknown) => applyPerformanceMode(profileId, packOptions(opts)));
 
   // Diagnostics
   handle('diagnostics:get', getDiagnostics);

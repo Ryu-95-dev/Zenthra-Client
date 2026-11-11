@@ -19,13 +19,21 @@ public class ArmorHudModule extends HudModule {
 	private final ChoiceSetting durability = add(new ChoiceSetting("durability", "Durabilité", List.of("value", "percent", "none"), List.of("Valeur", "Pourcentage", "Masquée"), "value"));
 	private final BooleanSetting mainHand = add(new BooleanSetting("main_hand", "Objet en main", true));
 
+	// Reused every frame instead of allocating a new list.
+	private final List<ItemStack> items = new ArrayList<>();
+	/** Example equipment shown in the HUD editor (created once, when first needed). */
+	private List<ItemStack> preview;
+	/** Durability texts already built for 0..4095 (values) and 0..100 (percentages). */
+	private static final String[] VALUES = new String[4096];
+	private static final String[] PERCENTS = new String[101];
+
 	public ArmorHudModule() {
 		super("armor_hud", "Armor HUD", "Équipement porté et durabilité.", Category.HUD, true, 1.0, 0.62);
 	}
 
 	@Override
 	protected void renderElement(Gfx g, float partialTick, boolean editing) {
-		List<ItemStack> items = new ArrayList<>();
+		items.clear();
 		if (mc.player != null) {
 			for (EquipmentSlot slot : SLOTS) {
 				ItemStack s = mc.player.getItemBySlot(slot);
@@ -34,7 +42,10 @@ public class ArmorHudModule extends HudModule {
 			if (mainHand.get() && !mc.player.getMainHandItem().isEmpty()) items.add(mc.player.getMainHandItem());
 		}
 		if (items.isEmpty() && editing) {
-			items = List.of(new ItemStack(Items.DIAMOND_HELMET), new ItemStack(Items.DIAMOND_CHESTPLATE), new ItemStack(Items.DIAMOND_LEGGINGS), new ItemStack(Items.DIAMOND_BOOTS));
+			if (preview == null) {
+				preview = List.of(new ItemStack(Items.DIAMOND_HELMET), new ItemStack(Items.DIAMOND_CHESTPLATE), new ItemStack(Items.DIAMOND_LEGGINGS), new ItemStack(Items.DIAMOND_BOOTS));
+			}
+			items.addAll(preview);
 		}
 		boolean vertical = layout.is("vertical");
 		int x = 0, y = 0, maxW = 16, maxH = 16;
@@ -66,7 +77,17 @@ public class ArmorHudModule extends HudModule {
 	private String durabilityText(ItemStack s) {
 		if (!s.isDamageableItem() || durability.is("none")) return null;
 		int left = s.getMaxDamage() - s.getDamageValue();
-		return durability.is("percent") ? Math.round(100f * left / s.getMaxDamage()) + "%" : String.valueOf(left);
+		if (durability.is("percent")) {
+			int pct = Math.round(100f * left / s.getMaxDamage());
+			if (pct < 0 || pct >= PERCENTS.length) return pct + "%";
+			String t = PERCENTS[pct];
+			if (t == null) PERCENTS[pct] = t = pct + "%";
+			return t;
+		}
+		if (left < 0 || left >= VALUES.length) return String.valueOf(left);
+		String t = VALUES[left];
+		if (t == null) VALUES[left] = t = String.valueOf(left);
+		return t;
 	}
 
 	private static int durabilityColor(ItemStack s) {

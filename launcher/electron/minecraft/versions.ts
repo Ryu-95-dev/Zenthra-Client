@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import AdmZip from 'adm-zip';
 import type { InstalledVersion, VersionSummary } from '../../../shared/types';
 import { UserError } from '../services/errors';
@@ -169,10 +170,22 @@ export async function installLibraries(libs: Library[], task: Task, trustExistin
   if (missing.length) throw new UserError(`Bibliothèques introuvables : ${missing.map((m) => m.path).join(', ')}`);
 }
 
+/** Marker written once the natives of a version are extracted: its content identifies the native jars used. */
+const nativesMarker = (id: string) => path.join(nativesDir(id), '.zenthra-extracted');
+
+/** Identifies a list of native jars (path + sha1), so a changed list is extracted again. */
+export function nativesSignature(natives: { path: string; sha1?: string; exclude?: string[] }[]): string {
+  const text = natives.map((n) => `${n.path}|${n.sha1 ?? ''}|${(n.exclude ?? []).join(',')}`).join('\n');
+  return crypto.createHash('sha1').update(text).digest('hex');
+}
+
 async function extractNatives(id: string, libs: Library[]): Promise<void> {
   const natives = resolveLibraries(libs).filter((l) => l.native);
   if (!natives.length) return;
   const dir = nativesDir(id);
+  const signature = nativesSignature(natives);
+  // Already extracted for this version (and the same native jars): nothing to do.
+  if ((await fsp.readFile(nativesMarker(id), 'utf8').catch(() => null)) === signature) return;
   await fsp.mkdir(dir, { recursive: true });
   for (const n of natives) {
     const zip = new AdmZip(libraryFile(n.path));
@@ -184,6 +197,7 @@ async function extractNatives(id: string, libs: Library[]): Promise<void> {
       await fsp.writeFile(dest, entry.getData());
     }
   }
+  await fsp.writeFile(nativesMarker(id), signature);
 }
 
 interface AssetIndex {
@@ -192,10 +206,16 @@ interface AssetIndex {
   map_to_resources?: boolean;
 }
 
+/** Marker next to an asset index: holds the index sha1 once every asset it lists was checked. */
+const assetsMarker = (indexId: string) => path.join(assetsDir(), 'indexes', `${indexId}.zenthra-verified`);
+
 async function installAssets(json: VersionJson, task: Task, trustExisting: boolean): Promise<void> {
   const idx = json.assetIndex;
   if (!idx) return;
   const indexFile = path.join(assetsDir(), 'indexes', `${idx.id}.json`);
+  // Verified version and the same index as last time: the ~4000 existence checks can be skipped.
+  // A repair (trustExisting = false) always checks everything again.
+  if (trustExisting && fs.existsSync(indexFile) && (await fsp.readFile(assetsMarker(idx.id), 'utf8').catch(() => null)) === idx.sha1) return;
   await download({ url: idx.url, dest: indexFile, hash: { algo: 'sha1', value: idx.sha1 }, allowedHosts: MOJANG_HOSTS, trustExisting, signal: task.signal });
   const index = await readJson<AssetIndex>(indexFile, { objects: {} });
   const objects = Object.entries(index.objects);
@@ -230,6 +250,7 @@ async function installAssets(json: VersionJson, task: Task, trustExisting: boole
       await fsp.copyFile(path.join(assetsDir(), 'objects', obj.hash.slice(0, 2), obj.hash), dest);
     }
   }
+  await fsp.writeFile(assetsMarker(idx.id), idx.sha1);
 }
 
 /**
@@ -238,6 +259,11 @@ async function installAssets(json: VersionJson, task: Task, trustExisting: boole
  */
 export async function repairVersion(id: string, task: Task): Promise<void> {
   await fsp.rm(markerPath(id), { force: true });
+  const vanillaId = (await readVersionJson(id))?.inheritsFrom ?? id;
+  // Natives are extracted again and every asset is checked again too.
+  await fsp.rm(nativesMarker(vanillaId), { force: true });
+  const assetIndex = (await readVersionJson(vanillaId))?.assetIndex?.id;
+  if (assetIndex) await fsp.rm(assetsMarker(assetIndex), { force: true });
   const json = await readVersionJson(id);
   if (json?.inheritsFrom) {
     await installVanilla(json.inheritsFrom, task);

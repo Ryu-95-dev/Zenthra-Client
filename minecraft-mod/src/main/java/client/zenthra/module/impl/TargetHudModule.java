@@ -6,6 +6,7 @@ import client.zenthra.module.HudModule;
 import client.zenthra.module.setting.BooleanSetting;
 import client.zenthra.module.setting.NumberSetting;
 import client.zenthra.util.Draw;
+import client.zenthra.util.TextCache;
 import java.util.Locale;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -22,6 +23,7 @@ public class TargetHudModule extends HudModule {
 	private final NumberSetting keep = add(new NumberSetting("keep", "Reste affiché après avoir visé", 2, 0, 5, 1, " s"));
 	private final BooleanSetting background = add(new BooleanSetting("background", "Fond", true));
 
+	private final TextCache valueText = new TextCache();
 	private LivingEntity target;
 	private long lastSeen;
 
@@ -67,7 +69,10 @@ public class TargetHudModule extends HudModule {
 		}
 		int heartsMax = Math.max(1, Math.min(10, (int) Math.ceil(max / 2)));
 		int absHearts = Math.min(10, (int) Math.ceil(absorption / 2));
-		String value = number(health) + " / " + number(max) + (absorption > 0 ? " +" + number(absorption) : "");
+		if (valueText.stale(TextCache.pack(Float.floatToIntBits(health), Float.floatToIntBits(max)), Float.floatToIntBits(absorption))) {
+			valueText.set(number(health) + " / " + number(max) + (absorption > 0 ? " +" + number(absorption) : ""));
+		}
+		String value = valueText.get();
 		int rowW = Math.max(heartsMax, absHearts) * 8;
 		width = Math.max(Math.max(Draw.font().width(name), rowW + 4 + Draw.font().width(value)), 60) + 8;
 		height = 26 + (absHearts > 0 ? 7 : 0);

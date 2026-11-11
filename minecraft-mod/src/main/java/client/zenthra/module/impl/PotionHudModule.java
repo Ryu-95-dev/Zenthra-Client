@@ -19,6 +19,13 @@ public class PotionHudModule extends HudModule {
 	private final BooleanSetting background = add(new BooleanSetting("background", "Fond", false));
 	private final BooleanSetting hideVanilla = add(new BooleanSetting("hide_vanilla", "Masquer les icônes d'effets vanilla", true));
 
+	// Reused every frame instead of allocating new lists.
+	private final List<MobEffectInstance> list = new ArrayList<>();
+	private final List<String> names = new ArrayList<>();
+	private final List<String> times = new ArrayList<>();
+	/** "m:ss" texts already built, indexed by remaining seconds (durations up to one hour). */
+	private static final String[] DURATIONS = new String[3600];
+
 	public PotionHudModule() {
 		super("potion_hud", "Potion HUD", "Effets actifs et durée restante.", Category.HUD, true, 0.005, 0.54);
 	}
@@ -31,20 +38,27 @@ public class PotionHudModule extends HudModule {
 	@Override
 	protected void renderElement(Gfx g, float partialTick, boolean editing) {
 		Collection<MobEffectInstance> effects = mc.player != null ? mc.player.getActiveEffects() : List.of();
-		List<String[]> rows = new ArrayList<>();
-		List<MobEffectInstance> list = new ArrayList<>(effects);
+		list.clear();
+		names.clear();
+		times.clear();
+		list.addAll(effects);
 		for (MobEffectInstance e : list) {
 			String name = Platform.effectName(e);
 			if (e.getAmplifier() > 0) name += " " + roman(e.getAmplifier() + 1);
-			rows.add(new String[] {name, duration(e)});
+			names.add(name);
+			times.add(duration(e));
 		}
-		if (rows.isEmpty() && editing) rows.add(new String[] {"Vitesse II", "1:30"});
+		if (names.isEmpty() && editing) {
+			names.add("Vitesse II");
+			times.add("1:30");
+		}
+		int rows = names.size();
 
 		int lineH = 20;
 		int maxW = 60;
-		for (String[] r : rows) maxW = Math.max(maxW, (icons.get() ? 22 : 0) + Math.max(Draw.font().width(r[0]), Draw.font().width(r[1])) + 4);
-		if (background.get() && !rows.isEmpty()) g.fill(-2, -2, maxW + 2, rows.size() * lineH, Draw.BG);
-		for (int i = 0; i < rows.size(); i++) {
+		for (int i = 0; i < rows; i++) maxW = Math.max(maxW, (icons.get() ? 22 : 0) + Math.max(Draw.font().width(names.get(i)), Draw.font().width(times.get(i))) + 4);
+		if (background.get() && rows > 0) g.fill(-2, -2, maxW + 2, rows * lineH, Draw.BG);
+		for (int i = 0; i < rows; i++) {
 			int y = i * lineH;
 			int x = 0;
 			if (icons.get() && i < list.size()) {
@@ -53,21 +67,25 @@ public class PotionHudModule extends HudModule {
 			} else if (icons.get()) {
 				x = 22;
 			}
-			g.text(rows.get(i)[0], x, y, nameColor.get(), true);
-			g.text(rows.get(i)[1], x, y + 9, timeColor.get(), true);
+			g.text(names.get(i), x, y, nameColor.get(), true);
+			g.text(times.get(i), x, y + 9, timeColor.get(), true);
 		}
 		width = maxW;
-		height = Math.max(18, rows.size() * lineH - 2);
+		height = Math.max(18, rows * lineH - 2);
 	}
 
 	private static String duration(MobEffectInstance e) {
 		if (e.isInfiniteDuration()) return "∞";
 		int seconds = e.getDuration() / 20;
-		return String.format("%d:%02d", seconds / 60, seconds % 60);
+		if (seconds < 0 || seconds >= DURATIONS.length) return String.format("%d:%02d", seconds / 60, seconds % 60);
+		String s = DURATIONS[seconds];
+		if (s == null) DURATIONS[seconds] = s = String.format("%d:%02d", seconds / 60, seconds % 60);
+		return s;
 	}
 
+	private static final String[] ROMAN = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
+
 	private static String roman(int n) {
-		String[] r = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
-		return n >= 1 && n <= 10 ? r[n - 1] : String.valueOf(n);
+		return n >= 1 && n <= 10 ? ROMAN[n - 1] : String.valueOf(n);
 	}
 }

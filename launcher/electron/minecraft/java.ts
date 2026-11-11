@@ -4,8 +4,10 @@ import path from 'node:path';
 import { UserError } from '../services/errors';
 import { Task } from '../services/events';
 import { download, fetchJson, pool } from '../services/http';
-import { runtimesDir, safeJoin } from '../services/paths';
+import { cachedJson, DAY_MS } from '../services/jsonCache';
+import { cacheDir, runtimesDir, safeJoin } from '../services/paths';
 import { downloadConcurrency } from '../services/settings';
+import { parseJavaRelease } from './jvmFlags';
 import { MOJANG_HOSTS } from './versions';
 
 // Official Mojang Java runtime index (same source as the vanilla launcher).
@@ -34,19 +36,29 @@ export async function ensureJavaRuntime(component: string, task: Task): Promise<
   const javaw = path.join(root, 'bin', 'javaw.exe');
   const marker = path.join(root, '.zenthra-manifest');
 
-  const index = await fetchJson<RuntimeIndex>(RUNTIME_INDEX).catch((err) => {
+  const installed = fs.existsSync(javaw) && fs.existsSync(marker);
+  // The runtime index is kept for a day: an installed, up-to-date runtime then needs no network at all.
+  const cached = await cachedJson<RuntimeIndex>({
+    file: path.join(cacheDir(), 'java-runtime-index.json'),
+    key: RUNTIME_INDEX,
+    ttlMs: DAY_MS,
+    load: () => fetchJson<RuntimeIndex>(RUNTIME_INDEX, { signal: task.signal }),
+  }).catch((err) => {
     // Offline but already installed: use what we have.
-    if (fs.existsSync(javaw) && fs.existsSync(marker)) return null;
+    if (installed) return null;
     throw err;
   });
-  if (!index) return javaw;
+  if (!cached) return javaw;
+  const index = cached.data;
 
   const entry = index[platform()]?.[component]?.[0];
   if (!entry) throw new UserError(`Le runtime Java « ${component} » n'est pas disponible pour Windows ${process.arch}.`);
 
-  if (fs.existsSync(javaw) && fs.existsSync(marker) && (await fsp.readFile(marker, 'utf8')) === entry.manifest.sha1) {
+  if (installed && (await fsp.readFile(marker, 'utf8')) === entry.manifest.sha1) {
     return javaw;
   }
+  // Offline with an old copy of the index: keep the installed runtime rather than fail.
+  if (installed && cached.source === 'stale') return javaw;
 
   task.update(-1, `Java ${entry.version.name}`);
   const manifest = await fetchJson<RuntimeManifest>(entry.manifest.url, { signal: task.signal });
@@ -74,4 +86,13 @@ export async function ensureJavaRuntime(component: string, task: Task): Promise<
   if (!fs.existsSync(javaw)) throw new UserError('Installation de Java incomplète (javaw.exe introuvable).');
   await fsp.writeFile(marker, entry.manifest.sha1);
   return javaw;
+}
+
+/** Major Java version of an installed runtime, from its "release" file (null when unknown). */
+export async function javaMajorVersion(javaw: string): Promise<number | null> {
+  try {
+    return parseJavaRelease(await fsp.readFile(path.join(path.dirname(path.dirname(javaw)), 'release'), 'utf8'));
+  } catch {
+    return null;
+  }
 }

@@ -41,10 +41,22 @@ npm run dist       # dossier exécutable Windows (electron-builder, release/)
 
 `JAVA_HOME` doit pointer vers un JDK 25 pour `gradlew`.
 
+## Performances
+
+- **Pack Performance** / **Mode Performance** : Diagnostic → Optimisation (voir docs/STATUS.md).
+  Seuls les mods ayant une version compatible sur Modrinth sont installés ; les autres sont signalés.
+- **Mémoire automatique** (Paramètres) : un profil sans mémoire propre reçoit la valeur recommandée
+  selon la RAM du PC et le nombre de mods.
+- Options Java : ZGC (Java 21+) ou G1 réglé (Java 17), Class Data Sharing (Java 19+). Les arguments JVM
+  saisis par le joueur passent toujours en dernier ; s'ils choisissent un ramasse-miettes ou `-Xshare`,
+  ceux du launcher ne sont pas ajoutés.
+- Caches de lancement dans `%APPDATA%\.zenthra\cache` (index Java, liste Fabric : 24 h ; archives CDS).
+  Supprimer ce dossier est sans risque.
+
 ## Données
 
 - Jeu : `%APPDATA%\.zenthra` (modifiable dans Paramètres) — `versions/`,
-  `libraries/`, `assets/`, `runtimes/`, `instances/<profil>/`, `logs/`
+  `libraries/`, `assets/`, `runtimes/`, `instances/<profil>/`, `logs/`, `cache/`
 - Launcher : `%APPDATA%\Zenthra Client` — `settings.json`, `profiles.json`,
   `servers.json`, `session.bin` (chiffré DPAPI)
 

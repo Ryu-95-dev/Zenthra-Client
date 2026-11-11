@@ -6,7 +6,9 @@ import client.zenthra.module.HudModule;
 import client.zenthra.module.setting.BooleanSetting;
 import client.zenthra.module.setting.ColorSetting;
 import client.zenthra.module.setting.NumberSetting;
-import client.zenthra.util.Draw;import java.util.Locale;
+import client.zenthra.util.Draw;
+import client.zenthra.util.TextCache;
+import java.util.Locale;
 
 /** Horizontal speed of the player, in blocks per second. */
 public class SpeedModule extends HudModule {
@@ -14,6 +16,7 @@ public class SpeedModule extends HudModule {
 	private final BooleanSetting background = add(new BooleanSetting("background", "Fond", true));
 	private double lastX, lastZ, speed;
 	private boolean hasLast;
+	private final TextCache text = new TextCache();
 
 	public SpeedModule() {
 		super("speed_display", "Vitesse", "Ta vitesse de déplacement en blocs par seconde.", Category.HUD, false, 0.45, 0.19);
@@ -37,7 +40,9 @@ public class SpeedModule extends HudModule {
 
 	@Override
 	protected void renderElement(Gfx g, float partialTick, boolean editing) {
-		int[] size = Draw.label(g, String.format(Locale.ROOT, "%.1f b/s", speed), color.get(), background.get(), true);
+		// speed changes once per tick, not once per frame.
+		if (text.stale(Double.doubleToLongBits(speed), 0)) text.set(String.format(Locale.ROOT, "%.1f b/s", speed));
+		int[] size = Draw.label(g, text.get(), color.get(), background.get(), true);
 		width = size[0];
 		height = size[1];
 	}

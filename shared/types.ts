@@ -74,6 +74,8 @@ export interface Settings {
   uiVolume: number;
   dataDir: string;
   memoryMb: number;
+  /** Profiles without their own memory value get the recommended amount (total RAM, number of mods) instead of memoryMb. */
+  autoMemory: boolean;
   jvmArgs: string;
   afterLaunch: 'keep' | 'minimize' | 'hide';
   language: 'fr';
@@ -279,11 +281,31 @@ export interface OptimizationCandidate {
   projectId: string;
   name: string;
   purpose: string;
+  /** Part of the Pack Performance only when chosen (Dynamic FPS). */
+  optional?: boolean;
   installed: boolean;
   /** Compatible version found for the profile (null = none). */
   versionNumber: string | null;
   /** Why it cannot be installed, when it cannot. */
   blocked: string | null;
+}
+
+/** Result of installing the "Pack Performance" (and of the "Mode Performance" button). */
+export interface PerformancePackResult {
+  /** Mods installed now (with their required dependencies). */
+  installed: string[];
+  alreadyInstalled: string[];
+  /** Mods left out, with the reason (no compatible version, conflict, Minecraft version…). */
+  skipped: { name: string; reason: string }[];
+  /** Zenthra "optimization" module turned on (Mode Performance); null when not requested or unavailable. */
+  moduleEnabled: boolean | null;
+  /** Why the Zenthra module could not be turned on, if it could not. */
+  moduleNote: string | null;
+}
+
+export interface PerformancePackOptions {
+  /** Also install Dynamic FPS (lowers FPS when the window is in the background). */
+  dynamicFps: boolean;
 }
 
 export interface ProfileIssue {

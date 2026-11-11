@@ -1,13 +1,14 @@
 import { FolderOpen, Terminal } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { LOADER_LABELS, type LogLine } from '@shared/types';
+import { effectiveMemoryMb } from '@shared/performance';
 import { api } from '../api';
 import { PlayButton } from '../components/PlayButton';
 import { ProfileAvatar } from '../components/icons';
 import { useApp } from '../state/AppState';
 
 export function PlayPage() {
-  const { selectedProfile, settings, game } = useApp();
+  const { selectedProfile, settings, game, appInfo } = useApp();
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [follow, setFollow] = useState(true);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -40,7 +41,10 @@ export function PlayPage() {
           <div className="meta">
             <span>Minecraft {p.mcVersion}</span>
             <span>{p.loader === 'vanilla' ? 'Vanilla' : `${LOADER_LABELS[p.loader]} ${p.loaderVersion ?? '(dernière stable)'}`}</span>
-            <span>{((p.memoryMb ?? settings.memoryMb) / 1024).toFixed(1)} Go de mémoire</span>
+            <span>
+              {(effectiveMemoryMb(p, settings, appInfo?.totalRamMb ?? 0).memoryMb / 1024).toFixed(1)} Go de mémoire
+              {!p.memoryMb && settings.autoMemory ? ' (auto)' : ''}
+            </span>
             <span>{p.mods.length} mod(s)</span>
             <span>{p.zenthraMod ? 'Mod Zenthra inclus' : 'Sans mod Zenthra'}</span>
           </div>

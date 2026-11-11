@@ -238,10 +238,19 @@ export function SettingsPage() {
         </div>
         <div className="setting-row">
           <div className="grow">
-            <div>Mémoire Java par défaut</div>
-            <div className="muted small">Chaque profil peut la remplacer. Trop de mémoire peut provoquer des saccades.</div>
+            <div>Mémoire automatique</div>
+            <div className="muted small">Pour les profils sans valeur propre : calculée d’après la RAM du PC et le nombre de mods.</div>
           </div>
-          <input type="range" min={1024} max={16384} step={512} value={s.memoryMb} onChange={(e) => updateSettings({ memoryMb: Number(e.target.value) })} />
+          <Toggle label="Mémoire automatique" checked={s.autoMemory} onChange={(v) => updateSettings({ autoMemory: v })} />
+        </div>
+        <div className="setting-row">
+          <div className="grow">
+            <div>Mémoire Java par défaut</div>
+            <div className="muted small">
+              {s.autoMemory ? 'Utilisée seulement si la mémoire automatique est désactivée.' : 'Chaque profil peut la remplacer. Trop de mémoire peut provoquer des saccades.'}
+            </div>
+          </div>
+          <input type="range" min={1024} max={16384} step={512} value={s.memoryMb} onChange={(e) => updateSettings({ memoryMb: Number(e.target.value), autoMemory: false })} />
           <span className="muted small value">{(s.memoryMb / 1024).toFixed(1)} Go</span>
         </div>
         <div className="setting-row">

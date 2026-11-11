@@ -6,7 +6,9 @@ import client.zenthra.module.HudModule;
 import client.zenthra.module.setting.BooleanSetting;
 import client.zenthra.module.setting.ColorSetting;
 import client.zenthra.module.setting.NumberSetting;
-import client.zenthra.util.Draw;import java.time.LocalTime;
+import client.zenthra.util.Draw;
+import client.zenthra.util.TextCache;
+import java.time.LocalTime;
 
 /** Real-world time. */
 public class ClockModule extends HudModule {
@@ -14,14 +16,20 @@ public class ClockModule extends HudModule {
 	private final BooleanSetting seconds = add(new BooleanSetting("seconds", "Secondes", false));
 	private final BooleanSetting background = add(new BooleanSetting("background", "Fond", true));
 
+	private final TextCache cache = new TextCache();
+
 	public ClockModule() {
 		super("clock", "Horloge", "L'heure réelle, pour ne pas perdre la notion du temps.", Category.UTILITY, false, 0.33, 0.01);
 	}
 
 	@Override
 	protected void renderElement(Gfx g, float partialTick, boolean editing) {
-		LocalTime t = LocalTime.now();
-		String text = seconds.get() ? String.format("%02d:%02d:%02d", t.getHour(), t.getMinute(), t.getSecond()) : String.format("%02d:%02d", t.getHour(), t.getMinute());
+		// The text only changes once per second: read the clock and format it then.
+		if (cache.stale(System.currentTimeMillis() / 1000, seconds.get() ? 1 : 0)) {
+			LocalTime t = LocalTime.now();
+			cache.set(seconds.get() ? String.format("%02d:%02d:%02d", t.getHour(), t.getMinute(), t.getSecond()) : String.format("%02d:%02d", t.getHour(), t.getMinute()));
+		}
+		String text = cache.get();
 		int[] size = Draw.label(g, text, color.get(), background.get(), true);
 		width = size[0];
 		height = size[1];

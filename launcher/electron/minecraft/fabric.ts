@@ -4,8 +4,9 @@ import path from 'node:path';
 import { UserError } from '../services/errors';
 import { Task } from '../services/events';
 import { fetchJson, HttpError } from '../services/http';
+import { cachedJson, DAY_MS } from '../services/jsonCache';
 import { readJson, writeJson } from '../services/jsonStore';
-import { versionsDir } from '../services/paths';
+import { cacheDir, versionsDir } from '../services/paths';
 import type { VersionJson } from './versionJson';
 import { installLibraries } from './versions';
 
@@ -24,6 +25,24 @@ export async function listFabricLoaders(mcVersion: string): Promise<{ version: s
     if (err instanceof HttpError && (err.status === 400 || err.status === 404)) return [];
     throw err;
   }
+}
+
+/**
+ * Same list for launching, kept for a day: with a fresh copy and the loader
+ * already installed, a launch does not contact the Fabric servers at all.
+ * An empty answer is not kept (Fabric may add the version soon).
+ */
+async function cachedFabricLoaders(mcVersion: string): Promise<{ version: string; stable: boolean }[]> {
+  const url = `${META}/versions/loader/${encodeURIComponent(mcVersion)}`;
+  const safe = mcVersion.replace(/[^\w.\-]/g, '_');
+  const { data } = await cachedJson({
+    file: path.join(cacheDir(), 'fabric', `loaders-${safe}.json`),
+    key: url,
+    ttlMs: DAY_MS,
+    load: () => listFabricLoaders(mcVersion),
+    accept: (list) => list.length > 0,
+  });
+  return data;
 }
 
 export async function isFabricSupported(mcVersion: string): Promise<boolean> {
@@ -50,7 +69,7 @@ export async function installFabric(mcVersion: string, loaderVersion: string | n
   if (!loader) {
     task.update(-1, 'Recherche de Fabric Loader');
     try {
-      const loaders = await listFabricLoaders(mcVersion);
+      const loaders = await cachedFabricLoaders(mcVersion);
       const stable = loaders.find((l) => l.stable) ?? loaders[0];
       if (!stable) throw new UserError(`Fabric n'est pas disponible pour Minecraft ${mcVersion}.`);
       loader = stable.version;

@@ -5,6 +5,8 @@ import client.zenthra.module.HudModule;
 import client.zenthra.module.setting.BooleanSetting;
 import client.zenthra.module.setting.ColorSetting;
 import client.zenthra.util.Draw;
+import client.zenthra.util.TextCache;
+
 import client.zenthra.compat.Gfx;
 
 public class SessionTimerModule extends HudModule {
@@ -14,6 +16,8 @@ public class SessionTimerModule extends HudModule {
 	private final ColorSetting color = add(new ColorSetting("color", "Couleur", 0xFFFFFFFF));
 	private final BooleanSetting sinceWorld = add(new BooleanSetting("since_world", "Depuis l'entrée dans le monde", true));
 	private final BooleanSetting background = add(new BooleanSetting("background", "Fond", true));
+
+	private final TextCache cache = new TextCache();
 
 	public SessionTimerModule() {
 		super("session_timer", "Session Timer", "Durée de la session de jeu en cours.", Category.UTILITY, false, 0.45, 0.07);
@@ -29,7 +33,8 @@ public class SessionTimerModule extends HudModule {
 	protected void renderElement(Gfx g, float partialTick, boolean editing) {
 		long start = sinceWorld.get() && worldStart > 0 ? worldStart : gameStart;
 		long s = (System.currentTimeMillis() - start) / 1000;
-		String text = String.format("%d:%02d:%02d", s / 3600, s / 60 % 60, s % 60);
+		if (cache.stale(s, 0)) cache.set(String.format("%d:%02d:%02d", s / 3600, s / 60 % 60, s % 60));
+		String text = cache.get();
 		int[] size = Draw.label(g, text, color.get(), background.get(), true);
 		width = size[0];
 		height = size[1];

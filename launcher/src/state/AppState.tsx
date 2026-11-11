@@ -97,8 +97,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     root.style.setProperty('--accent', settings.accentColor);
     root.style.setProperty('--bg-opacity', String(settings.backgroundOpacity));
-    root.dataset.animations = settings.animations ? 'on' : 'off';
-  }, [settings]);
+    // While Minecraft runs the launcher stays idle: no animations competing with the game.
+    root.dataset.animations = settings.animations && game.status !== 'running' ? 'on' : 'off';
+  }, [settings, game.status]);
 
   const updateSettings = useCallback(
     async (patch: Partial<Settings>) => {

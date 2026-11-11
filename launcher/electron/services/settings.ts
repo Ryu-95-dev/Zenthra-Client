@@ -22,6 +22,7 @@ export function defaultSettings(): Settings {
     uiVolume: 0.5,
     dataDir: defaultDataDir(),
     memoryMb: defaultMemory(),
+    autoMemory: true,
     jvmArgs: '',
     afterLaunch: 'minimize',
     language: 'fr',
@@ -43,6 +44,8 @@ export async function getSettings(): Promise<Settings> {
   if (!cache) {
     const stored = await readJson<Partial<Settings>>(file(), {});
     cache = { ...defaultSettings(), ...stored };
+    // Settings saved before automatic memory existed: keep a memory value the player changed.
+    if (stored.autoMemory === undefined && stored.memoryMb !== undefined) cache.autoMemory = stored.memoryMb === defaultMemory();
     // The environment variable wins when the user has not entered an ID.
     if (!cache.msClientId && process.env.ZENTHRA_MS_CLIENT_ID) cache.msClientId = process.env.ZENTHRA_MS_CLIENT_ID;
     setDataDir(cache.dataDir);
@@ -78,6 +81,7 @@ function sanitize(patch: Partial<Settings>): Partial<Settings> {
   if (out.backgroundOpacity !== undefined) out.backgroundOpacity = clamp(out.backgroundOpacity, 0, 1);
   if (out.uiVolume !== undefined) out.uiVolume = clamp(out.uiVolume, 0, 1);
   if (out.memoryMb !== undefined) out.memoryMb = clamp(Math.round(out.memoryMb), 1024, 32768);
+  if (out.autoMemory !== undefined) out.autoMemory = !!out.autoMemory;
   if (out.dataDir !== undefined && !path.isAbsolute(out.dataDir)) delete out.dataDir;
   // HTTPS only (plain HTTP is accepted for a server running on this computer, for testing).
   if (out.presenceServerUrl && !/^(https:\/\/|http:\/\/127\.0\.0\.1[:/])\S+$/.test(out.presenceServerUrl)) out.presenceServerUrl = '';

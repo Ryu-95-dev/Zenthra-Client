@@ -6,6 +6,7 @@ import client.zenthra.module.HudModule;
 import client.zenthra.module.setting.BooleanSetting;
 import client.zenthra.module.setting.ColorSetting;
 import client.zenthra.util.Draw;
+import client.zenthra.util.TextCache;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -16,6 +17,9 @@ public class StatusIndicatorsModule extends HudModule {
 	private final ColorSetting color = add(new ColorSetting("color", "Couleur", 0xFFC4B5FD));
 	private final BooleanSetting background = add(new BooleanSetting("background", "Fond", true));
 
+	private final List<String> lines = new ArrayList<>();
+	private final TextCache zoomText = new TextCache();
+
 	public StatusIndicatorsModule() {
 		super("status_indicators", "Indicateurs d'état", "Sprint maintenu, free look et zoom actifs.", Category.HUD, false, 0.005, 0.86);
 	}
@@ -23,12 +27,16 @@ public class StatusIndicatorsModule extends HudModule {
 	@Override
 	protected void renderElement(Gfx g, float partialTick, boolean editing) {
 		var modules = ZenthraClient.modules();
-		List<String> lines = new ArrayList<>();
+		lines.clear();
 		ToggleSprintModule sprint = modules.get(ToggleSprintModule.class);
 		if (sprint.isEnabled() && sprint.isSprintHeld()) lines.add("Sprint maintenu");
 		if (modules.get(FreeLookModule.class).isActive()) lines.add("Free Look");
 		ZoomModule zoom = modules.get(ZoomModule.class);
-		if (zoom.isZooming()) lines.add(String.format(Locale.ROOT, "Zoom ×%.1f", zoom.currentLevel()));
+		if (zoom.isZooming()) {
+			double level = zoom.currentLevel();
+			if (zoomText.stale(Double.doubleToLongBits(level), 0)) zoomText.set(String.format(Locale.ROOT, "Zoom ×%.1f", level));
+			lines.add(zoomText.get());
+		}
 		if (lines.isEmpty() && editing) lines.add("Indicateurs d'état");
 
 		int w = 0, y = 0;

@@ -7,9 +7,13 @@ import client.zenthra.module.setting.BooleanSetting;
 import client.zenthra.module.setting.ColorSetting;
 import client.zenthra.module.setting.NumberSetting;
 import client.zenthra.util.Draw;
+import client.zenthra.util.TextCache;
+
 /** Java memory used by the game. */
 public class MemoryModule extends HudModule {
 	private final BooleanSetting background = add(new BooleanSetting("background", "Fond", true));
+
+	private final TextCache text = new TextCache();
 
 	public MemoryModule() {
 		super("memory_display", "Mémoire", "Mémoire utilisée par le jeu (RAM Java).", Category.UTILITY, false, 0.25, 0.07);
@@ -21,7 +25,8 @@ public class MemoryModule extends HudModule {
 		long used = (rt.totalMemory() - rt.freeMemory()) / 1048576, max = rt.maxMemory() / 1048576;
 		int pct = (int) (100 * used / Math.max(1, max));
 		int color = pct < 70 ? 0xFFFFFFFF : pct < 90 ? 0xFFFACC15 : 0xFFF87171;
-		int[] size = Draw.label(g, "RAM " + pct + "% · " + used + "/" + max + " Mo", color, background.get(), true);
+		if (text.stale(used, max)) text.set("RAM " + pct + "% · " + used + "/" + max + " Mo");
+		int[] size = Draw.label(g, text.get(), color, background.get(), true);
 		width = size[0];
 		height = size[1];
 	}
